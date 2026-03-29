@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darsh's Learning Adventure 🚀</title>
+<style>
+  /* ═══════════════════════════════════════
+     DESIGN: Playful Space Adventure Theme
+     Fully offline — zero internet deps
+  ═══════════════════════════════════════ */
+  @font-face {
+    font-family: 'GameFont';
+    src: local('Comic Sans MS'), local('Chalkboard SE'), local('Marker Felt');
+  }
+
+  :root {
+    --bg: #0a0a1a;
+    --card: #141430;
+    --card2: #1a1a40;
+    --accent1: #FFD700;
+    --accent2: #FF6B6B;
+    --accent3: #4ECDC4;
+    --accent4: #A8E6CF;
+    --accent5: #FF8B94;
+    --accent6: #7EC8E3;
+    --text: #F0F0FF;
+    --muted: #8888AA;
+    --correct: #2ECC71;
+    --wrong: #E74C3C;
+    --star: #FFD700;
+    --purple: #9B59B6;
+    --orange: #FF7F50;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Trebuchet MS', 'Comic Sans MS', cursive;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(2px 2px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(2px 2px at 25% 40%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(2px 2px at 55% 30%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(2px 2px at 85% 20%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 70%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 90% 80%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(2px 2px at 80% 45%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 65%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(2px 2px at 20% 25%, rgba(255,215,0,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 15%, rgba(255,215,0,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  /* ── HOME SCREEN ── */
+  #home {
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    background: radial-gradient(ellipse at 50% 30%, rgba(100,50,200,0.3) 0%, transparent 70%);
+  }
+
+  .logo {
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    animation: pulse 3s ease-in-out infinite;
+    margin-bottom: 8px;
+  }
+
+  .rocket-emoji { font-size: 4rem; animation: float 3s ease-in-out infinite; display: block; margin: 10px 0; }
+
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+  @keyframes pulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.3)} }
+  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  @keyframes wiggle { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+  @keyframes slideIn { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes pop { 0%{transform:scale(0)} 80%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  @keyframes confetti-fall {
+    0%{transform:translateY(-10px) rotate(0deg);opacity:1}
+    100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%,60%{transform:translateX(-8px)}
+    40%,80%{transform:translateX(8px)}
+  }
+  @keyframes starSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  .tagline { font-size: 1.1rem; color: var(--accent4); margin-bottom: 30px; opacity: 0.9; }
+
+  .player-setup { background: var(--card); border-radius: 20px; padding: 24px; margin: 10px 0 20px; max-width: 420px; width: 100%; border: 2px solid rgba(255,215,0,0.3); box-shadow: 0 0 30px rgba(100,50,200,0.4); }
+
+  .player-setup h3 { color: var(--accent1); margin-bottom: 16px; font-size: 1.2rem; }
+
+  .name-input {
+    width: 100%; padding: 12px 16px; border-radius: 12px;
+    border: 2px solid var(--accent3); background: rgba(255,255,255,0.05);
+    color: var(--text); font-size: 1.1rem; font-family: inherit;
+    outline: none; transition: border-color 0.3s;
+  }
+  .name-input:focus { border-color: var(--accent1); }
+
+  .avatar-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 14px 0; }
+  .avatar-btn {
+    font-size: 2rem; width: 54px; height: 54px; border-radius: 50%; border: 3px solid transparent;
+    background: var(--card2); cursor: pointer; transition: all 0.2s; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .avatar-btn:hover { transform: scale(1.15); border-color: var(--accent1); }
+  .avatar-btn.selected { border-color: var(--accent1); background: rgba(255,215,0,0.2); transform: scale(1.1); }
+
+  .btn {
+    padding: 14px 32px; border-radius: 50px; border: none; font-size: 1.1rem;
+    font-family: inherit; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.5px; position: relative; overflow: hidden;
+  }
+  .btn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.1); opacity:0; transition:opacity 0.2s; }
+  .btn:hover::after { opacity:1; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: linear-gradient(135deg, #7B2FBE, #4ECDC4); color: white; box-shadow: 0 4px 20px rgba(123,47,190,0.5); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(123,47,190,0.6); }
+  .btn-subject { background: var(--card2); color: var(--text); border: 2px solid rgba(255,255,255,0.1); padding: 10px 20px; font-size: 0.95rem; }
+  .btn-subject:hover { border-color: var(--accent1); color: var(--accent1); }
+  .btn-sm { padding: 8px 18px; font-size: 0.9rem; }
+  .btn-back { background: rgba(255,255,255,0.08); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+  .btn-back:hover { color: var(--text); background: rgba(255,255,255,0.15); }
+
+  /* ── SUBJECT GRID ── */
+  .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 16px; width: 100%; max-width: 860px; padding: 0 16px 30px; }
+
+  .subject-card {
+    background: var(--card); border-radius: 20px; padding: 20px 16px;
+    text-align: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.07);
+    transition: all 0.25s; position: relative; overflow: hidden;
+  }
+  .subject-card::before {
+    content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), transparent);
+  }
+  .subject-card:hover { transform: translateY(-6px) scale(1.03); border-color: var(--card-color, var(--accent1)); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+  .subject-card:hover::before { opacity: 1; }
+  .subject-card .icon { font-size: 2.8rem; margin-bottom: 10px; display: block; }
+  .subject-card .label { font-size: 0.95rem; font-weight: 700; line-height: 1.3; }
+  .subject-card .stars { font-size: 0.8rem; color: var(--star); margin-top: 6px; }
+  .subject-card .chapter-badge { position: absolute; top: 8px; right: 10px; background: var(--card-color, var(--accent1)); color: #000; font-size: 0.65rem; font-weight: 900; padding: 2px 7px; border-radius: 20px; }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.07); position: sticky; top: 0; z-index: 100;
+  }
+  .player-chip { display: flex; align-items: center; gap: 8px; }
+  .player-chip .av { font-size: 1.5rem; }
+  .player-chip .name { font-weight: 700; color: var(--accent1); }
+  .score-display { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--accent1); font-size: 1.1rem; }
+  .lives-display { display: flex; gap: 4px; font-size: 1.2rem; }
+
+  /* ── SUBJECT HEADER ── */
+  .subject-header { text-align: center; padding: 28px 20px 12px; width: 100%; max-width: 800px; }
+  .subject-title { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; }
+  .subject-desc { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
+
+  /* ── MODE PICKER ── */
+  .mode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 14px; width: 100%; max-width: 700px; padding: 16px; }
+  .mode-card {
+    background: var(--card); border-radius: 18px; padding: 22px 18px; text-align: center;
+    cursor: pointer; border: 2px solid rgba(255,255,255,0.07); transition: all 0.22s;
+  }
+  .mode-card:hover { transform: translateY(-4px); border-color: var(--accent3); box-shadow: 0 8px 24px rgba(78,205,196,0.3); }
+  .mode-card .m-icon { font-size: 2.4rem; margin-bottom: 10px; display: block; }
+  .mode-card .m-label { font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
+  .mode-card .m-desc { font-size: 0.8rem; color: var(--muted); }
+
+  /* ── LEARN MODE ── */
+  .learn-container { width: 100%; max-width: 760px; padding: 20px; flex: 1; }
+  .learn-card {
+    background: var(--card); border-radius: 20px; padding: 28px;
+    margin-bottom: 16px; border-left: 5px solid var(--accent3);
+    animation: slideIn 0.4s ease;
+  }
+  .learn-card h3 { color: var(--accent3); margin-bottom: 12px; font-size: 1.15rem; }
+  .learn-card p, .learn-card li { line-height: 1.7; color: rgba(240,240,255,0.9); }
+  .learn-card ul { padding-left: 20px; margin-top: 8px; }
+  .learn-card .highlight { background: rgba(255,215,0,0.15); padding: 2px 6px; border-radius: 4px; color: var(--accent1); font-weight: 700; }
+  .learn-card .example { background: rgba(78,205,196,0.1); padding: 12px 16px; border-radius: 10px; margin-top: 10px; font-style: italic; border-left: 3px solid var(--accent3); }
+  .term-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 12px; margin-top: 14px; }
+  .term-card { background: var(--card2); border-radius: 12px; padding: 14px; border-top: 3px solid var(--accent2); }
+  .term-card .term { font-weight: 800; color: var(--accent2); font-size: 1rem; margin-bottom: 4px; }
+  .term-card .def { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+  .term-card .eg { font-size: 0.8rem; color: var(--accent4); margin-top: 4px; font-style: italic; }
+
+  /* ── QUIZ MODE ── */
+  .quiz-container { width: 100%; max-width: 720px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
+  .progress-bar-wrap { background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; margin-bottom: 20px; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent3), var(--accent1)); border-radius: 10px; transition: width 0.5s ease; }
+  .q-counter { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 6px; }
+  .q-card { background: var(--card); border-radius: 22px; padding: 28px; margin-bottom: 20px; border: 2px solid rgba(255,255,255,0.07); animation: slideIn 0.3s ease; }
+  .q-text { font-size: clamp(1rem,3vw,1.2rem); font-weight: 600; line-height: 1.6; }
+  .q-tag { display: inline-block; background: rgba(78,205,196,0.2); color: var(--accent3); font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; font-weight: 700; }
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:500px){ .options-grid{ grid-template-columns:1fr; } }
+  .opt-btn {
+    padding: 14px 18px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.12);
+    background: var(--card2); color: var(--text); font-family: inherit; font-size: 0.95rem;
+    cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.4;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent3); transform: translateX(4px); background: rgba(78,205,196,0.1); }
+  .opt-btn.correct { border-color: var(--correct); background: rgba(46,204,113,0.2); animation: bounce 0.4s ease; }
+  .opt-btn.wrong { border-color: var(--wrong); background: rgba(231,76,60,0.2); animation: shake 0.4s ease; }
+  .opt-btn:disabled { cursor: default; }
+  .feedback-box { background: var(--card2); border-radius: 14px; padding: 16px; margin-top: 14px; display: none; animation: slideIn 0.3s ease; }
+  .feedback-box.show { display: block; }
+  .feedback-box .f-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .feedback-box .f-text { font-size: 0.9rem; line-height: 1.5; color: rgba(240,240,255,0.85); }
+
+  /* ── GRAMMAR GAME ── */
+  .grammar-container { width: 100%; max-width: 760px; padding: 20px; flex: 1; }
+  .sentence-display { background: var(--card); border-radius: 18px; padding: 22px; margin-bottom: 18px; font-size: clamp(1rem,3vw,1.2rem); line-height: 2.2; }
+  .word-token {
+    display: inline-block; padding: 4px 10px; margin: 4px; border-radius: 8px;
+    cursor: pointer; border: 2px solid rgba(255,255,255,0.15); background: var(--card2);
+    transition: all 0.2s; font-weight: 600; user-select: none;
+  }
+  .word-token:hover { transform: translateY(-3px); border-color: var(--accent1); }
+  .word-token.labeled { border-color: transparent; }
+  .word-token.NOUN     { background: rgba(255,107,107,0.3); border-color: #FF6B6B; }
+  .word-token.PRONOUN  { background: rgba(255,139,148,0.3); border-color: #FF8B94; }
+  .word-token.VERB     { background: rgba(78,205,196,0.3); border-color: #4ECDC4; }
+  .word-token.ADVERB   { background: rgba(168,230,207,0.3); border-color: #A8E6CF; }
+  .word-token.ADJECTIVE{ background: rgba(255,215,0,0.3); border-color: #FFD700; }
+  .word-token.PREPOSITION{background:rgba(155,89,182,0.3); border-color:#9B59B6; }
+  .word-token.INTERJECTION{background:rgba(255,127,80,0.3);border-color:#FF7F50; }
+  .word-token.CONJUNCTION{background:rgba(126,200,227,0.3);border-color:#7EC8E3; }
+
+  .pos-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .pos-tag { padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+  .pos-tag:hover { transform: scale(1.05); }
+  .pos-tag.selected { border-color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+  .pos-tag.NOUN     { background: rgba(255,107,107,0.5); }
+  .pos-tag.PRONOUN  { background: rgba(255,139,148,0.5); }
+  .pos-tag.VERB     { background: rgba(78,205,196,0.5); }
+  .pos-tag.ADVERB   { background: rgba(168,230,207,0.5); }
+  .pos-tag.ADJECTIVE{ background: rgba(255,215,0,0.5); }
+  .pos-tag.PREPOSITION{ background:rgba(155,89,182,0.5); }
+  .pos-tag.INTERJECTION{background:rgba(255,127,80,0.5);}
+  .pos-tag.CONJUNCTION{ background:rgba(126,200,227,0.5); }
+
+  .grammar-instruction { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.9rem; color: var(--accent1); }
+
+  /* ── FLASHCARD MODE ── */
+  .flashcard-wrap { perspective: 1000px; width: 340px; height: 220px; margin: 20px auto; cursor: pointer; }
+  .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; inset: 0; border-radius: 20px; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+  .card-front { background: linear-gradient(135deg, #2d1b69, #11998e); border: 2px solid rgba(255,255,255,0.15); }
+  .card-back { background: linear-gradient(135deg, #1a472a, #2d6a4f); border: 2px solid rgba(255,255,255,0.15); transform: rotateY(180deg); }
+  .card-face h3 { font-size: 1.3rem; margin-bottom: 10px; }
+  .card-face p { font-size: 0.9rem; color: rgba(255,255,255,0.85); line-height: 1.5; }
+  .flip-hint { text-align: center; color: var(--muted); font-size: 0.8rem; margin-bottom: 10px; }
+
+  /* ── RESULT SCREEN ── */
+  .result-box { background: var(--card); border-radius: 24px; padding: 36px; text-align: center; max-width: 480px; width: 90%; border: 2px solid rgba(255,215,0,0.3); box-shadow: 0 0 50px rgba(255,215,0,0.2); animation: pop 0.5s ease; }
+  .result-stars { font-size: 3rem; letter-spacing: 8px; margin: 16px 0; }
+  .result-score { font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, var(--accent1), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .result-msg { font-size: 1.3rem; font-weight: 700; margin: 10px 0 20px; }
+  .result-breakdown { display: flex; justify-content: center; gap: 24px; margin: 16px 0; font-size: 0.9rem; color: var(--muted); }
+  .confetti { position: fixed; pointer-events: none; z-index: 999; top: 0; left: 0; width: 100%; }
+
+  /* ── VIDEO PLAYER ── */
+  .video-container { width: 100%; max-width: 800px; padding: 20px; flex: 1; }
+  .video-slide { background: var(--card); border-radius: 20px; padding: 28px; margin-bottom: 16px; display: none; animation: slideIn 0.4s ease; }
+  .video-slide.active { display: block; }
+  .slide-nav { display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 0; }
+  .slide-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; border: none; }
+  .slide-dot.active { background: var(--accent1); transform: scale(1.4); }
+  .visual-demo { background: var(--card2); border-radius: 14px; padding: 20px; margin: 14px 0; text-align: center; font-size: 3rem; min-height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; }
+  .animated-text { font-size: 1.3rem; font-weight: 800; }
+  .anim-word { display: inline-block; animation: pop 0.5s ease; }
+
+  /* ── WORD SORT GAME ── */
+  .sort-container { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .sort-bin { background: var(--card); border-radius: 16px; padding: 14px; min-height: 100px; border: 2px dashed rgba(255,255,255,0.15); transition: all 0.2s; }
+  .sort-bin.drag-over { border-color: var(--accent1); background: rgba(255,215,0,0.1); }
+  .sort-bin h4 { font-size: 0.9rem; margin-bottom: 10px; }
+  .drag-word { display: inline-block; padding: 6px 14px; margin: 4px; border-radius: 20px; cursor: grab; background: var(--card2); border: 2px solid rgba(255,255,255,0.15); font-size: 0.9rem; transition: all 0.2s; user-select: none; }
+  .drag-word:active { cursor: grabbing; transform: scale(1.1); opacity: 0.8; }
+  .drag-word.dragging { opacity: 0.4; }
+
+  /* ── NUMBER COUNTER ANIMATIONS ── */
+  .counter { font-size: 5rem; font-weight: 900; text-align: center; color: var(--accent1); }
+  .big-icon { font-size: 5rem; text-align: center; display: block; animation: bounce 1s ease infinite; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: rgba(30,30,60,0.95); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50px; padding: 12px 28px; font-size: 0.95rem; font-weight: 700;
+    z-index: 9999; transition: transform 0.4s ease; backdrop-filter: blur(10px);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.correct { border-color: var(--correct); color: var(--correct); }
+  .toast.wrong { border-color: var(--wrong); color: var(--wrong); }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:600px) {
+    .sort-container { grid-template-columns: 1fr; }
+    .mode-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── UTILS ── */
+  .center { display: flex; flex-direction: column; align-items: center; }
+  .mt { margin-top: 12px; }
+  .gap-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .hidden { display: none !important; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+  .badge-new { background: var(--accent2); color: white; }
+  .scrollable { overflow-y: auto; max-height: calc(100vh - 180px); padding-bottom: 40px; }
+  .text-center { text-align: center; }
+
+  /* ── COMPLETION BADGES ── */
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+  .achievement { background: var(--card); border-radius: 14px; padding: 10px 16px; text-align: center; border: 2px solid rgba(255,215,0,0.3); min-width: 90px; }
+  .achievement .ach-icon { font-size: 1.8rem; display: block; }
+  .achievement .ach-label { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+  .achievement .ach-val { font-size: 0.85rem; font-weight: 800; color: var(--accent1); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ TOAST ═══════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 1: HOME
+═══════════════════════════════════════ -->
+<div class="screen active" id="home">
+  <span class="rocket-emoji">🚀</span>
+  <div class="logo">Learning Adventure!</div>
+  <div class="tagline">Learn · Play · Explore · Grow 🌟</div>
+
+  <div class="player-setup">
+    <h3>✨ Who are you, Explorer?</h3>
+    <input class="name-input" id="playerName" type="text" placeholder="Type your name..." maxlength="20" value="Darsh">
+    <div class="avatar-row" id="avatarRow"></div>
+    <div class="gap-row mt">
+      <button class="btn btn-primary" onclick="startAdventure()">🚀 Start Adventure!</button>
+    </div>
+  </div>
+
+  <p style="color:var(--muted);font-size:0.8rem;margin-top:10px;">📡 100% Offline — Works without internet!</p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 2: SUBJECT MAP
+═══════════════════════════════════════ -->
+<div class="screen" id="subjectMap">
+  <div class="top-bar">
+    <div class="player-chip">
+      <span class="av" id="topAvatar"></span>
+      <span class="name" id="topName"></span>
+    </div>
+    <div class="score-display">⭐ <span id="totalScore">0</span></div>
+    <div class="lives-display" id="livesDisplay">❤️❤️❤️</div>
+  </div>
+
+  <div class="subject-header">
+    <div class="subject-title">🗺️ Choose Your Quest!</div>
+    <div class="subject-desc">Pick a subject to learn and play</div>
+  </div>
+
+  <div class="subject-grid" id="subjectGrid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 3: SUBJECT HUB
+═══════════════════════════════════════ -->
+<div class="screen" id="subjectHub">
+  <div class="top-bar">
+    <button class="btn btn-back btn-sm" onclick="goBack('subjectMap')">← Back</button>
+    <div class="score-display">⭐ <span id="hubScore">0</span></div>
+    <div class="lives-display" id="hubLives">❤️❤️❤️</div>
+  </div>
+  <div class="subject-header">
+    <div class="subject-title" id="hubTitle"></div>
+    <div class="subject-desc" id="hubDesc"></div>
+  </div>
+  <div class="mode-grid" id="modeGrid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 4: LEARN (slides/lessons)
+═══════════════════════════════════════ -->
+<div class="screen" id="learnScreen">
+  <div class="top-bar">
+    <button class="btn btn-back btn-sm" onclick="goBack('subjectHub')">← Back</button>
+    <div style="font-weight:700;color:var(--accent3)" id="learnTitle">Learn</div>
+    <div></div>
+  </div>
+  <div class="learn-container scrollable" id="learnContent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 5: QUIZ
+═══════════════════════════════════════ -->
+<div class="screen" id="quizScreen">
+  <div class="top-bar">
+    <button class="btn btn-back btn-sm" onclick="goBack('subjectHub')">← Back</button>
+    <div class="score-display">⭐ <span id="quizScore">0</span></div>
+    <div class="lives-display" id="quizLives">❤️❤️❤️</div>
+  </div>
+  <div class="quiz-container">
+    <div class="q-counter" id="qCounter"></div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="q-card" id="qCard">
+      <span class="q-tag" id="qTag"></span>
+      <div class="q-text" id="qText"></div>
+    </div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback-box" id="feedbackBox">
+      <div class="f-icon" id="fIcon"></div>
+      <div class="f-text" id="fText"></div>
+      <button class="btn btn-primary btn-sm mt" onclick="nextQuestion()" id="nextBtn">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 6: GRAMMAR GAME
+═══════════════════════════════════════ -->
+<div class="screen" id="grammarScreen">
+  <div class="top-bar">
+    <button class="btn btn-back btn-sm" onclick="goBack('subjectHub')">← Back</button>
+    <div style="font-weight:700;color:var(--accent2)">Grammar Hunter 🎯</div>
+    <div class="score-display">⭐ <span id="gramScore">0</span></div>
+  </div>
+  <div class="grammar-container scrollable">
+    <div class="grammar-instruction">
+      🎮 <b>How to play:</b> Select a word type from the legend below, then click on words in the sentence to label them! Get points for correct labels.
+    </div>
+    <div class="pos-legend" id="posLegend"></div>
+    <div id="gramSentenceArea"></div>
+    <div class="gap-row mt">
+      <button class="btn btn-primary btn-sm" onclick="checkGrammar()">✅ Check</button>
+      <button class="btn btn-subject btn-sm" onclick="nextGramSentence()">⏭ Next Sentence</button>
+      <button class="btn btn-subject btn-sm" onclick="showGramHint()">💡 Hint</button>
+    </div>
+    <div id="gramFeedback" style="margin-top:14px;"></div>
+
+    <!-- POS Reference Card -->
+    <div style="margin-top:20px;">
+      <div style="font-weight:700;color:var(--accent1);margin-bottom:12px;">📖 Parts of Speech — Quick Reference</div>
+      <div class="term-grid" id="posReference"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 7: FLASHCARD
+═══════════════════════════════════════ -->
+<div class="screen" id="flashScreen">
+  <div class="top-bar">
+    <button class="btn btn-back btn-sm" onclick="goBack('subjectHub')">← Back</button>
+    <div style="font-weight:700;color:var(--accent4)">Flash Cards 🃏</div>
+    <div class="score-display"><span id="flashCounter">1/1</span></div>
+  </div>
+  <div class="center" style="flex:1;padding:20px;width:100%;max-width:600px;margin:0 auto">
+    <p class="flip-hint">👆 Click the card to flip it!</p>
+    <div class="flashcard-wrap" onclick="flipFlashcard()">
+      <div class="flashcard" id="flashcard">
+        <div class="card-face card-front">
+          <div style="font-size:2rem;margin-bottom:12px" id="flashFrontIcon">❓</div>
+          <h3 id="flashFrontText">Question</h3>
+          <p id="flashFrontSub" style="font-size:0.85rem;opacity:0.7"></p>
+        </div>
+        <div class="card-face card-back">
+          <div style="font-size:2rem;margin-bottom:12px">✅</div>
+          <h3 id="flashBackText">Answer</h3>
+          <p id="flashBackSub" style="font-size:0.85rem;opacity:0.8"></p>
+        </div>
+      </div>
+    </div>
+    <div class="gap-row mt">
+      <button class="btn btn-subject" onclick="prevFlash()">◀ Prev</button>
+      <button class="btn btn-primary" onclick="nextFlash()">Next ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 8: VIDEO / PRESENTATION
+═══════════════════════════════════════ -->
+<div class="screen" id="videoScreen">
+  <div class="top-bar">
+    <button class="btn btn-back btn-sm" onclick="goBack('subjectHub')">← Back</button>
+    <div style="font-weight:700;color:var(--purple)">Fun Presentation 🎬</div>
+    <div></div>
+  </div>
+  <div class="video-container scrollable">
+    <div id="slideContent"></div>
+    <div class="slide-nav" id="slideNav"></div>
+    <div class="gap-row">
+      <button class="btn btn-subject" onclick="prevSlide()">◀ Prev</button>
+      <button class="btn btn-primary" onclick="nextSlide()">Next ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 9: RESULT
+═══════════════════════════════════════ -->
+<div class="screen" id="resultScreen">
+  <div class="center" style="flex:1;padding:20px">
+    <canvas id="confettiCanvas" class="confetti"></canvas>
+    <div class="result-box">
+      <div style="font-size:2.5rem" id="resultEmoji">🎉</div>
+      <div class="result-msg" id="resultMsg">Amazing!</div>
+      <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+      <div class="result-score" id="resultScore">10/10</div>
+      <div class="result-breakdown" id="resultBreakdown"></div>
+      <div class="badge-row" id="resultBadges"></div>
+      <div class="gap-row mt">
+        <button class="btn btn-subject" onclick="goBack('subjectHub')">🔄 Play Again</button>
+        <button class="btn btn-primary" onclick="goBack('subjectMap')">🗺️ Choose Subject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════════
+const STATE = {
+  player: { name: 'Darsh', avatar: '🧑‍🚀' },
+  score: 0,
+  lives: 3,
+  currentSubject: null,
+  quiz: { questions: [], current: 0, correct: 0, wrong: 0 },
+  flash: { cards: [], current: 0, flipped: false },
+  gram: { sentences: [], current: 0, selected_pos: null, score: 0 },
+  slides: { data: [], current: 0 },
+  achievements: {}
+};
+
+const avatars = ['🧑‍🚀','👩‍🚀','🦸','👧','👦','🧒','🧑‍🎓','🦊','🐱','🐶','🐸','🦁'];
+
+// ═══════════════════════════════════════════════════════════════
+//  ALL SUBJECT DATA
+// ═══════════════════════════════════════════════════════════════
+const SUBJECTS = [
+  {
+    id:'english1', label:'English 1\n(Stories)', icon:'📖', color:'#FF6B6B',
+    desc:'Brer Rabbit, Sabina & more stories',
+    modes:['learn','quiz','flashcard','video'],
+    learn: [
+      { title:'📖 Story: Brer Rabbit and Brer Fox', content:`<p>Brer Rabbit was a very clever rabbit who loved to trick Brer Fox. One day, Brer Fox caught Brer Rabbit and said he would punish him. Clever Brer Rabbit pretended to be scared of only one thing — the briar patch! Brer Fox threw Brer Rabbit right into the briar patch. But Brer Rabbit laughed and said <span class="highlight">"Born and bred in the briar patch!"</span> — it was his home all along!</p><div class="example">Moral: Use your wit and intelligence to get out of trouble.</div>` },
+      { title:'✨ Story Vocabulary', content:`<div class="term-grid"><div class="term-card"><div class="term">Gusty</div><div class="def">Very windy</div><div class="eg">The gusty wind blew the leaves away.</div></div><div class="term-card"><div class="term">Soar</div><div class="def">To fly high in the sky</div><div class="eg">Eagles soar above the mountains.</div></div><div class="term-card"><div class="term">Grumbled</div><div class="def">To complain in a low voice</div><div class="eg">He grumbled about the cold weather.</div></div><div class="term-card"><div class="term">Astonished</div><div class="def">Very surprised</div><div class="eg">She was astonished to see a rainbow.</div></div><div class="term-card"><div class="term">Galloped</div><div class="def">To run fast like a horse</div><div class="eg">The horse galloped across the field.</div></div><div class="term-card"><div class="term">Diamond</div><div class="def">A precious, sparkling gem</div><div class="eg">A diamond shines brightly.</div></div><div class="term-card"><div class="term">Distant</div><div class="def">Far away</div><div class="eg">I could see distant mountains.</div></div><div class="term-card"><div class="term">Terrible</div><div class="def">Very bad or scary</div><div class="eg">The storm was terrible.</div></div><div class="term-card"><div class="term">Peculiar</div><div class="def">Strange or unusual</div><div class="eg">The peculiar noise scared us.</div></div><div class="term-card"><div class="term">Doze</div><div class="def">To sleep lightly</div><div class="eg">Grandpa likes to doze in his chair.</div></div></div>` },
+      { title:'🔤 Rhyming Words', content:`<div class="term-grid"><div class="term-card"><div class="term">fight — night</div><div class="eg">also: light, right, bright, tonight</div></div><div class="term-card"><div class="term">cloudy — muddy</div><div class="eg">also: sunny, shady, sleepy</div></div><div class="term-card"><div class="term">juicy — playful</div><div class="eg">also: careful, wonderful, peaceful</div></div><div class="term-card"><div class="term">wonder — diamond</div><div class="eg">sun, peep, traveller</div></div></div>` },
+    ],
+    quiz: [
+      { q:'Brer Rabbit tricked Brer Fox using his _____.', opts:['strength','wit','speed','claws'], ans:1, exp:'Brer Rabbit used his cleverness (wit) to trick Brer Fox!' },
+      { q:'The briar patch was Brer Rabbit\'s _____.', opts:['prison','enemy','home','punishment'], ans:2, exp:'Brer Rabbit was born and bred in the briar patch — it was his home!' },
+      { q:'What is the meaning of "Gusty"?', opts:['Very cold','Very windy','Very dark','Very loud'], ans:1, exp:'Gusty means very windy!' },
+      { q:'What does "Soar" mean?', opts:['To swim','To crawl','To fly high','To sleep'], ans:2, exp:'Soar means to fly high up in the sky!' },
+      { q:'What does "Astonished" mean?', opts:['Angry','Very tired','Very surprised','Very happy'], ans:2, exp:'Astonished means extremely surprised!' },
+      { q:'What does "Grumbled" mean?', opts:['To laugh loudly','To complain in a low voice','To sing happily','To jump high'], ans:1, exp:'Grumbled means to complain in a low, unhappy voice.' },
+      { q:'What does "Galloped" mean?', opts:['To swim fast','To run fast like a horse','To fly high','To crawl slowly'], ans:1, exp:'Galloped means to run very fast, like a horse!' },
+      { q:'Which word rhymes with "night"?', opts:['bite','boat','kite','light'], ans:3, exp:'Light rhymes with night — both end in "-ight"!' },
+      { q:'Which word means "Far away"?', opts:['Close','Distant','Nearby','Around'], ans:1, exp:'Distant means far away!' },
+      { q:'What is the opposite of "terrible"?', opts:['worse','awful','wonderful','horrible'], ans:2, exp:'The opposite of terrible is wonderful!' },
+      { q:'Which word means strange or unusual?', opts:['Common','Ordinary','Peculiar','Normal'], ans:2, exp:'Peculiar means strange or unusual!' },
+      { q:'What does "Doze" mean?', opts:['To eat a lot','To sleep lightly','To run fast','To jump high'], ans:1, exp:'Doze means to sleep lightly or take a short nap.' },
+    ],
+    flashcards: [
+      {front:'Gusty',frontSub:'What does it mean?',back:'Very windy',backSub:'Example: The gusty wind blew the leaves.'},
+      {front:'Soar',frontSub:'What does it mean?',back:'To fly high in the sky',backSub:'Example: Eagles soar above clouds.'},
+      {front:'Astonished',frontSub:'What does it mean?',back:'Extremely surprised',backSub:'Example: She was astonished to see magic.'},
+      {front:'Grumbled',frontSub:'What does it mean?',back:'To complain in a low voice',backSub:'Example: He grumbled about homework.'},
+      {front:'Galloped',frontSub:'What does it mean?',back:'To run fast like a horse',backSub:'Example: The horse galloped away.'},
+      {front:'Peculiar',frontSub:'What does it mean?',back:'Strange or unusual',backSub:'Example: The peculiar sound was scary.'},
+      {front:'Doze',frontSub:'What does it mean?',back:'To sleep lightly',backSub:'Example: Grandpa dozed in his chair.'},
+      {front:'Distant',frontSub:'What does it mean?',back:'Far away',backSub:'Example: The distant mountains looked tiny.'},
+      {front:'Terrible',frontSub:'Opposite is?',back:'Wonderful / Great',backSub:'Terrible = very bad, Wonderful = very good'},
+      {front:'night, light, right, bright',frontSub:'These words do what?',back:'They RHYME! 🎵',backSub:'All end in "-ight"'},
+    ],
+    slides: [
+      {title:'Meet Brer Rabbit! 🐰',visual:'🐰',content:'Brer Rabbit is a <b>very clever</b> rabbit who lives in the forest. He loves to use his <b>brain</b> instead of his muscles to solve problems!',anim:'bounce'},
+      {title:'The Trap 🦊',visual:'🦊',content:'Brer Fox caught Brer Rabbit and wanted to punish him. But Brer Rabbit had a plan! He said <b>"Please don\'t throw me in the briar patch!"</b>',anim:'wiggle'},
+      {title:'The Trick! 🌟',visual:'🌿',content:'Brer Fox threw Brer Rabbit into the briar patch... and Brer Rabbit <b>laughed</b>! The briar patch was his HOME! He was born and bred there!',anim:'pop'},
+      {title:'Vocabulary Time! 📚',visual:'✨',content:'<b>Gusty</b> = very windy 💨<br><b>Soar</b> = fly high 🦅<br><b>Astonished</b> = very surprised 😲<br><b>Grumbled</b> = complained 😤<br><b>Galloped</b> = ran fast 🐎',anim:'bounce'},
+      {title:'Rhyming Words 🎵',visual:'🎶',content:'Words that sound alike at the end!<br><br><b>night → light → right → bright → fight</b><br><br>Can you think of more?',anim:'wiggle'},
+    ]
+  },
+  {
+    id:'english2', label:'English 2\n(Grammar)', icon:'✏️', color:'#FF8B94',
+    desc:'Adjectives, Adverbs, Conjunctions & more',
+    modes:['learn','quiz','grammar','flashcard'],
+    learn: [
+      { title:'🔤 Parts of Speech Overview', content:`<div class="term-grid"><div class="term-card"><div class="term">🔴 Noun</div><div class="def">Name of a person, place, thing or animal</div><div class="eg">dog, school, Darsh, India</div></div><div class="term-card"><div class="term">🟣 Pronoun</div><div class="def">Word that replaces a noun</div><div class="eg">he, she, it, they, I, we, you</div></div><div class="term-card"><div class="term">🟢 Verb</div><div class="def">Action or doing word</div><div class="eg">run, eat, sleep, play, is</div></div><div class="term-card"><div class="term">🟡 Adjective</div><div class="def">Describes a noun</div><div class="eg">big, red, fast, twelve eggs</div></div><div class="term-card"><div class="term">🔵 Adverb</div><div class="def">Describes how, when or where something is done</div><div class="eg">quickly, loudly, carefully</div></div><div class="term-card"><div class="term">🟤 Preposition</div><div class="def">Shows the relationship between noun and other words (place/time)</div><div class="eg">in, on, at, under, above, below</div></div><div class="term-card"><div class="term">🟠 Interjection</div><div class="def">Shows strong feelings or emotions</div><div class="eg">Wow! Oh! Ouch! Hurray! Alas!</div></div><div class="term-card"><div class="term">🔵 Conjunction</div><div class="def">Joins two words or sentences</div><div class="eg">and, but, or, because, so</div></div></div>` },
+      { title:'📝 Adjectives', content:`<p>Adjectives <span class="highlight">describe nouns</span>. They tell us size, colour, number, shape or quality.</p><div class="example">The <b>big</b> dog ate a <b>red</b> apple.<br>There are <b>twelve</b> eggs in the basket.<br>She has a <b>delicious</b> cupcake.</div><p class="mt">Types of Adjectives:<br>• <b>Quality:</b> beautiful, tall, cold<br>• <b>Quantity:</b> some, many, few<br>• <b>Number:</b> five, twelve, third</p>` },
+      { title:'📝 Adverbs', content:`<p>Adverbs describe verbs. They tell us <span class="highlight">how, when or where</span> an action happens.</p><div class="example">She sings <b>beautifully</b>. (how?)<br>He came <b>yesterday</b>. (when?)<br>The cat sleeps <b>here</b>. (where?)</div><p class="mt">Making Adverbs: Add <b>-ly</b> to adjectives!<br>careful → carefully<br>beautiful → beautifully<br>quick → quickly</p>` },
+      { title:'📝 Prepositions (In, On, At)', content:`<p>Prepositions show <span class="highlight">position, time, or relationship</span>.</p><div class="example"><b>IN:</b> months, years, cities → "in October", "in 2024"<br><b>ON:</b> days, dates → "on Monday", "on 12 June"<br><b>AT:</b> specific time, place → "at 7 o'clock", "at home"</div><p class="mt">Examples:<br>• The cat sleeps <b>in</b> the basket.<br>• We have holidays <b>on</b> Saturday.<br>• Grandfather walks <b>at</b> sunrise.</p>` },
+      { title:'📝 Conjunctions', content:`<p>Conjunctions <span class="highlight">join words or sentences</span>.</p><div class="example"><b>AND</b> — adds ideas: "I like cats <b>and</b> dogs"<br><b>BUT</b> — shows contrast: "She is tall <b>but</b> he is short"<br><b>OR</b> — shows choice: "Tea <b>or</b> coffee?"</div>` },
+      { title:'📝 Interjections', content:`<p>Interjections show <span class="highlight">strong feelings</span>! They usually have ! mark.</p><div class="term-grid"><div class="term-card"><div class="term">Wow!</div><div class="eg">Something amazing</div></div><div class="term-card"><div class="term">Ouch!</div><div class="eg">Pain</div></div><div class="term-card"><div class="term">Hurray!</div><div class="eg">Joy/victory</div></div><div class="term-card"><div class="term">Alas!</div><div class="eg">Sadness</div></div><div class="term-card"><div class="term">Oh!</div><div class="eg">Surprise</div></div><div class="term-card"><div class="term">Ugh!</div><div class="eg">Disgust</div></div></div>` },
+      { title:'📝 Can / Cannot / Should / Should Not', content:`<div class="example"><b>CAN</b> — ability: "A kangaroo <b>can</b> hop."<br><b>CANNOT</b> — no ability: "Ostriches <b>cannot</b> fly."<br><b>SHOULD</b> — advice: "You <b>should</b> study daily."<br><b>SHOULD NOT</b> — advice against: "You <b>should not</b> litter."</div>` },
+      { title:'📝 Possessive Apostrophe (\'s)', content:`<p>Add <span class="highlight">'s</span> after a noun to show it belongs to someone.</p><div class="example">grandma → <b>grandma's</b> stories<br>bird → <b>bird's</b> nest<br>Tanisha → <b>Tanisha's</b> dress</div>` },
+    ],
+    quiz: [
+      { q:'Which is an Adjective in: "The BIG dog ate a RED apple."', opts:['dog','ate','big','apple'], ans:2, exp:'Big and Red are adjectives — they describe the noun "dog" and "apple"!' },
+      { q:'Adverbs are formed by adding ___ to adjectives.', opts:['-ed','-ing','-ly','-er'], ans:2, exp:'Add -ly to make adverbs: careful → carefully, quick → quickly!' },
+      { q:'Which interjection shows PAIN?', opts:['Wow!','Hurray!','Ouch!','Alas!'], ans:2, exp:'Ouch! shows pain or hurt!' },
+      { q:'Choose the correct preposition: "We have holidays ___ Saturday."', opts:['in','on','at','by'], ans:1, exp:'We use ON for days of the week: on Saturday, on Monday!' },
+      { q:'"I will buy green grapes. I will buy black grapes." Join with:', opts:['but','or','and','because'], ans:2, exp:'AND is used to join two similar ideas!' },
+      { q:'"Ostriches have wings. Ostriches cannot fly." Join with:', opts:['and','or','but','so'], ans:2, exp:'BUT is used to show contrast or opposite ideas!' },
+      { q:'Which is the VERB in: "She sings beautifully"?', opts:['she','sings','beautifully','the'], ans:1, exp:'Sings is the verb — it shows the action!' },
+      { q:'"Carefully" is an adverb formed from which adjective?', opts:['care','cared','careful','careless'], ans:2, exp:'Careful + ly = Carefully!' },
+      { q:'Which is a PRONOUN?', opts:['Darsh','school','she','apple'], ans:2, exp:'"She" is a pronoun — it replaces a noun (a girl\'s name)!' },
+      { q:'Preposition "AT" is used for:', opts:['months','days','specific time or place','years'], ans:2, exp:'AT is used for specific times (at 7pm) and places (at home)!' },
+      { q:'"___ I forgot my wallet at home." Which interjection fits?', opts:['Hurray!','Oh!','Wow!','Ouch!'], ans:1, exp:'Oh! shows surprise — like forgetting your wallet!' },
+      { q:'"A camel ___ live without water for many days."', opts:['should','cannot','can','should not'], ans:2, exp:'CAN shows ability — a camel can survive without water!' },
+      { q:'How do we show possession? grandma\'s stories — what is used?', opts:['comma','apostrophe (\'s)','hyphen','period'], ans:1, exp:'Apostrophe + s (\'s) shows that the stories belong to grandma!' },
+    ],
+    flashcards:[
+      {front:'Noun',frontSub:'What is it?',back:'Name of person/place/thing',backSub:'dog, school, India, Darsh'},
+      {front:'Pronoun',frontSub:'What is it?',back:'Replaces a noun',backSub:'I, we, he, she, it, they, you'},
+      {front:'Verb',frontSub:'What is it?',back:'Action/doing word',backSub:'run, eat, play, sleep, is'},
+      {front:'Adjective',frontSub:'What is it?',back:'Describes a noun',backSub:'big, red, twelve, beautiful'},
+      {front:'Adverb',frontSub:'What is it?',back:'Describes a verb (how/when/where)',backSub:'quickly, yesterday, here'},
+      {front:'Preposition',frontSub:'What is it?',back:'Shows position or time',backSub:'in, on, at, under, above'},
+      {front:'Interjection',frontSub:'What is it?',back:'Shows strong feelings!',backSub:'Wow! Ouch! Hurray! Alas!'},
+      {front:'Conjunction',frontSub:'What is it?',back:'Joins words or sentences',backSub:'and, but, or, because, so'},
+      {front:'careful → ?',frontSub:'Make it an adverb',back:'carefully',backSub:'Add -ly to the adjective!'},
+      {front:'Preposition IN is used for?',frontSub:'Time usage',back:'Months, years, cities',backSub:'"in October", "in 2024", "in India"'},
+    ],
+    grammarSentences: [
+      {
+        sentence: ['Wow', '!', 'The', 'big', 'dog', 'runs', 'very', 'fast', 'in', 'the', 'park', '.'],
+        labels: {0:'INTERJECTION',2:'PRONOUN',3:'ADJECTIVE',4:'NOUN',5:'VERB',6:'ADVERB',7:'ADVERB',8:'PREPOSITION',10:'NOUN'},
+        explanation:'Wow! = interjection • big = adjective • dog = noun • runs = verb • very fast = adverbs • in = preposition'
+      },
+      {
+        sentence:['She','sings','beautifully','and','dances','gracefully','.'],
+        labels:{0:'PRONOUN',1:'VERB',2:'ADVERB',3:'CONJUNCTION',4:'VERB',5:'ADVERB'},
+        explanation:'She = pronoun • sings/dances = verbs • beautifully/gracefully = adverbs • and = conjunction'
+      },
+      {
+        sentence:['Darsh','and','Mia','played','happily','at','the','school','.'],
+        labels:{0:'NOUN',1:'CONJUNCTION',2:'NOUN',3:'VERB',4:'ADVERB',5:'PREPOSITION',7:'NOUN'},
+        explanation:'Darsh/Mia/school = nouns • and = conjunction • played = verb • happily = adverb • at = preposition'
+      },
+      {
+        sentence:['Ouch','!','The','little','cat','jumped','quickly','over','the','fence','.'],
+        labels:{0:'INTERJECTION',3:'ADJECTIVE',4:'NOUN',5:'VERB',6:'ADVERB',7:'PREPOSITION',9:'NOUN'},
+        explanation:'Ouch! = interjection • little = adjective • cat/fence = nouns • jumped = verb • quickly = adverb • over = preposition'
+      },
+      {
+        sentence:['Birds','fly','but','fish','swim','in','water','.'],
+        labels:{0:'NOUN',1:'VERB',2:'CONJUNCTION',3:'NOUN',4:'VERB',5:'PREPOSITION',6:'NOUN'},
+        explanation:'Birds/fish/water = nouns • fly/swim = verbs • but = conjunction • in = preposition'
+      },
+    ],
+  },
+  {
+    id:'maths', label:'Mathematics', icon:'🔢', color:'#4ECDC4',
+    desc:'Numbers, shapes, fractions & time',
+    modes:['learn','quiz','flashcard'],
+    learn:[
+      {title:'➕ Addition', content:`<p>Addition means putting numbers together to get a bigger number.</p><div class="example">415 + 455 = <b>870</b><br>733 + 852 = <b>1585</b><br>466 + 237 = <b>703</b></div><p class="mt">The answer of addition is called the <span class="highlight">Sum</span></p>`},
+      {title:'➖ Subtraction', content:`<p>Subtraction means taking away one number from another.</p><div class="example">997 − 729 = <b>268</b><br>821 − 309 = <b>512</b><br>500 − 125 = <b>375</b></div><p class="mt">The sign of subtraction is <span class="highlight">−</span></p>`},
+      {title:'✖️ Multiplication', content:`<p>Multiplication is repeated addition!</p><div class="example">5 × 4 = 20<br>7 × 7 = 49<br>8 × 8 = 64</div><p class="mt">The answer is called the <span class="highlight">Product</span><br>The sign is <span class="highlight">×</span></p>`},
+      {title:'➗ Division', content:`<p>Division means splitting into equal groups!</p><div class="example">35 ÷ 35 = 1<br>80 ÷ 10 = 8<br>___ × 5 = 10 → answer: 2</div><p class="mt">The answer is called the <span class="highlight">Quotient</span></p>`},
+      {title:'🍕 Fractions', content:`<p>Fractions show parts of a whole.</p><div class="example">½ = One Half (half of something)<br>¼ = One Quarter (one out of four equal parts)<br>½ + ½ = 1 whole</div><p class="mt"><b>Two quarters</b> make <span class="highlight">one half!</span></p>`},
+      {title:'📏 Measurement', content:`<div class="term-grid"><div class="term-card"><div class="term">Length</div><div class="def">measured in cm, m, km</div></div><div class="term-card"><div class="term">Weight</div><div class="def">measured in g, kg</div><div class="eg">1 kg = 1000 g | ½ kg = 500 g</div></div><div class="term-card"><div class="term">Capacity</div><div class="def">measured in ml, L</div><div class="eg">1 L = 1000 ml | ½ L = 500 ml</div></div><div class="term-card"><div class="term">Money</div><div class="def">1 ₹ = 100 Paisa</div></div></div>`},
+      {title:'🕐 Time & Calendar', content:`<div class="example"><b>Clock:</b><br>Shorter hand = Hour hand<br>Longer hand = Minute hand<br>Half past = 30 minutes<br><br><b>Calendar:</b><br>1 year = 12 months = 52 weeks<br>Leap year = 366 days<br>February in leap year = 29 days<br>Months with 30 days = April, June, September, November (4 months)</div>`},
+    ],
+    quiz:[
+      {q:'5 × 4 = ?',opts:['9','20','15','25'],ans:1,exp:'5 × 4 = 20. Count by 5s: 5,10,15,20!'},
+      {q:'Repeated addition is called:',opts:['Division','Multiplication','Subtraction','Addition'],ans:1,exp:'Repeated addition is multiplication! 3+3+3 = 3×3'},
+      {q:'35 ÷ 35 = ?',opts:['2','3','1','0'],ans:2,exp:'Any number divided by itself = 1!'},
+      {q:'80 ÷ 10 = ?',opts:['2','8','7','9'],ans:1,exp:'80 ÷ 10 = 8. Think: how many 10s in 80?'},
+      {q:'The result of multiplication is called:',opts:['Sum','Quotient','Product','Difference'],ans:2,exp:'Multiplication gives a Product!'},
+      {q:'7 × 7 = ?',opts:['49','42','56','64'],ans:0,exp:'7 × 7 = 49. Seven sevens!'},
+      {q:'½ + ½ = ?',opts:['whole (1)','half','2','none'],ans:0,exp:'Half + Half = One whole!'},
+      {q:'One out of four equal parts is called:',opts:['half','third','quarter','fifth'],ans:2,exp:'One out of four equal parts = ¼ = one quarter!'},
+      {q:'1 kg = ___ grams',opts:['100','500','1000','2000'],ans:2,exp:'1 kilogram = 1000 grams!'},
+      {q:'1 litre = ___ ml',opts:['100','500','1000','50'],ans:2,exp:'1 litre = 1000 millilitres!'},
+      {q:'Shorter hand of the clock is the ___ hand.',opts:['minute','second','hour','day'],ans:2,exp:'The shorter/small hand shows HOURS!'},
+      {q:'How many months in a year have 30 days?',opts:['3','4','5','6'],ans:1,exp:'4 months have 30 days: April, June, September, November!'},
+      {q:'A leap year has ___ days.',opts:['364','365','366','360'],ans:2,exp:'A leap year has 366 days! February gets an extra day.'},
+      {q:'1 ₹ = ___ Paisa',opts:['50','100','500','10'],ans:1,exp:'1 Rupee = 100 Paisa!'},
+      {q:'100 + 25 = ?',opts:['1025','125','1250','150'],ans:1,exp:'100 + 25 = 125!'},
+    ],
+    flashcards:[
+      {front:'Product',frontSub:'Result of which operation?',back:'Multiplication',backSub:'5 × 4 = 20 (20 is the product)'},
+      {front:'Quotient',frontSub:'Result of which operation?',back:'Division',backSub:'10 ÷ 2 = 5 (5 is the quotient)'},
+      {front:'Sum',frontSub:'Result of which operation?',back:'Addition',backSub:'3 + 4 = 7 (7 is the sum)'},
+      {front:'½',frontSub:'What is this?',back:'One Half',backSub:'1 out of 2 equal parts'},
+      {front:'¼',frontSub:'What is this?',back:'One Quarter',backSub:'1 out of 4 equal parts'},
+      {front:'1 kg = ?',frontSub:'In grams',back:'1000 grams',backSub:'½ kg = 500 g'},
+      {front:'1 litre = ?',frontSub:'In ml',back:'1000 ml',backSub:'½ litre = 500 ml'},
+      {front:'Leap year',frontSub:'How many days?',back:'366 days',backSub:'February has 29 days!'},
+      {front:'Hour hand',frontSub:'Short or Long?',back:'Short hand',backSub:'Minute hand is the long hand'},
+      {front:'Half past',frontSub:'How many minutes?',back:'30 minutes',backSub:'Half past 3 = 3:30'},
+    ]
+  },
+  {
+    id:'science', label:'Science', icon:'🔬', color:'#A8E6CF',
+    desc:'Materials, living things, weather & space',
+    modes:['learn','quiz','flashcard'],
+    learn:[
+      {title:'🧶 Natural vs Synthetic Fibres', content:`<div class="term-grid"><div class="term-card"><div class="term">Natural Fibres</div><div class="def">From nature</div><div class="eg">Cotton (plants), Silk (silkworm), Wool (sheep/animals), Jute (plants)</div></div><div class="term-card"><div class="term">Synthetic Fibres</div><div class="def">Made from chemicals</div><div class="eg">Nylon, Rayon, Polyester</div></div><div class="term-card"><div class="term">Earth-based</div><div class="def">From the earth</div><div class="eg">Clay, Coal, Gravel</div></div></div><p class="mt">Synthetic fibres are <span class="highlight">stronger</span> than natural fibres.</p>`},
+      {title:'🧊 States of Matter', content:`<div class="term-grid"><div class="term-card"><div class="term">Solid</div><div class="def">Fixed shape and size</div><div class="eg">Cricket ball, rock, wood</div></div><div class="term-card"><div class="term">Liquid</div><div class="def">No fixed shape</div><div class="eg">Juice, water, milk</div></div><div class="term-card"><div class="term">Gas</div><div class="def">No fixed shape or size</div><div class="eg">Air, steam, oxygen</div></div></div><div class="example">Evaporation: liquid → gas<br>Condensation: gas → liquid<br>Freezing: liquid → solid<br>Melting: solid → liquid</div>`},
+      {title:'🌱 Plants', content:`<div class="example"><b>Parts of a plant:</b><br>Root: absorbs water and minerals<br>Stem: carries water to all parts<br>Leaf: makes food (photosynthesis)<br>Flower: helps in reproduction<br>Fruit: contains seeds<br><br><b>Stomata</b> = tiny holes on leaves where plants breathe</div>`},
+      {title:'🫀 Human Body Systems', content:`<div class="term-grid"><div class="term-card"><div class="term">Skeletal System</div><div class="def">206 bones in our body. Rib cage protects heart and lungs.</div></div><div class="term-card"><div class="term">Respiratory System</div><div class="def">Helps us breathe. Nose → lungs.</div></div><div class="term-card"><div class="term">Muscular System</div><div class="def">Different muscles form the muscular system.</div></div></div>`},
+      {title:'🌦️ Weather & Seasons', content:`<div class="term-grid"><div class="term-card"><div class="term">Monsoon</div><div class="def">July to September. Rainy and cool.</div></div><div class="term-card"><div class="term">Summer</div><div class="def">Hot, clouds make days shorter</div></div><div class="term-card"><div class="term">Winter</div><div class="def">Cold, starts February</div></div></div><p class="mt">Monsoon is followed by <span class="highlight">Autumn season</span>.</p>`},
+      {title:'🌍 Earth & Space', content:`<div class="example"><b>Rotation:</b> Earth spinning on its own axis (causes day and night)<br><b>Revolution:</b> Earth going around the Sun (causes seasons)<br><b>Natural satellite:</b> The Moon<br><b>Planets revolve around:</b> The Sun<br><b>Largest planet:</b> Jupiter<br><b>Only planet with life:</b> Earth</div>`},
+    ],
+    quiz:[
+      {q:'Which of these are synthetic fibres?',opts:['Jute, Hemp','Cotton, Wool','Nylon, Rayon','Silk, Cotton'],ans:2,exp:'Nylon and Rayon are synthetic fibres made from chemicals!'},
+      {q:'Silk is obtained from:',opts:['Plants','Silkworm','Sheep','Fish'],ans:1,exp:'Silk is obtained from silkworms — they spin silk threads!'},
+      {q:'The process of liquid changing to gas is called:',opts:['Condensation','Melting','Evaporation','Freezing'],ans:2,exp:'Evaporation: liquid → gas (like water drying up)!'},
+      {q:'Juice is a liquid because it:',opts:['has a fixed shape','does not have a fixed shape','is solid','is a gas'],ans:1,exp:'Liquids do NOT have a fixed shape — they take the shape of their container!'},
+      {q:'Which is a SOLID?',opts:['Juice','Air','Cricket ball','Steam'],ans:2,exp:'A cricket ball is solid — it has a fixed shape and size!'},
+      {q:'Plants breathe through tiny holes called:',opts:['Pores','Veins','Stomata','Roots'],ans:2,exp:'Stomata are tiny holes on leaves through which plants breathe!'},
+      {q:'There are about ___ bones in our body.',opts:['100','150','206','300'],ans:2,exp:'The human body has 206 bones!'},
+      {q:'The movement of Earth around the Sun is called:',opts:['Rotation','Revolution','Orbit','Spinning'],ans:1,exp:'Revolution = Earth going around the Sun. This causes seasons!'},
+      {q:'Synthetic fibres are ___ than natural fibres.',opts:['Weaker','Same','Stronger','Softer'],ans:2,exp:'Synthetic fibres like nylon are stronger than natural ones!'},
+      {q:'Which planet is the largest in the solar system?',opts:['Earth','Mars','Saturn','Jupiter'],ans:3,exp:'Jupiter is the largest planet in our solar system!'},
+      {q:'Which is the only planet with air and water?',opts:['Mars','Venus','Earth','Neptune'],ans:2,exp:'Earth is the only planet known to have both air and water!'},
+      {q:'Monsoon season is followed by ___ season.',opts:['Summer','Autumn/Winter','Spring','None'],ans:1,exp:'After Monsoon (July-Sept) comes the cool Autumn season!'},
+    ],
+    flashcards:[
+      {front:'Evaporation',frontSub:'What change is this?',back:'Liquid → Gas',backSub:'Example: Puddles dry up in sun'},
+      {front:'Condensation',frontSub:'What change is this?',back:'Gas → Liquid',backSub:'Example: Water drops on cold glass'},
+      {front:'Stomata',frontSub:'What are they?',back:'Tiny holes on plant leaves',backSub:'Plants breathe and exchange gases through stomata'},
+      {front:'Revolution',frontSub:'What is it?',back:'Earth going around the Sun',backSub:'Takes 365 days = 1 year'},
+      {front:'Rotation',frontSub:'What is it?',back:'Earth spinning on its own axis',backSub:'Causes day and night'},
+      {front:'Nylon & Rayon',frontSub:'Natural or Synthetic?',back:'Synthetic fibres',backSub:'Made from chemicals in factories'},
+      {front:'Silk',frontSub:'Where does it come from?',back:'Silkworm',backSub:'Silk = natural fibre from insects'},
+      {front:'Rib cage',frontSub:'What does it protect?',back:'Heart and Lungs',backSub:'Part of the skeletal system'},
+      {front:'206',frontSub:'Number of what?',back:'Bones in our body',backSub:'The skeletal system has 206 bones'},
+      {front:'Jupiter',frontSub:'What is it?',back:'Largest planet in solar system',backSub:'Biggest of the 8 planets'},
+    ]
+  },
+  {
+    id:'sst', label:'Social Studies\n(SST)', icon:'🌍', color:'#FFD700',
+    desc:'Occupations, festivals, places & laws',
+    modes:['learn','quiz','flashcard'],
+    learn:[
+      {title:'👨‍⚕️ Occupations', content:`<div class="term-grid"><div class="term-card"><div class="term">Astronaut</div><div class="def">Travels to space</div></div><div class="term-card"><div class="term">Journalist</div><div class="def">Gathers and reports news</div></div><div class="term-card"><div class="term">Lawyer</div><div class="def">Helps in matters related to law</div></div><div class="term-card"><div class="term">Coach</div><div class="def">Instructs, trains and guides players</div></div><div class="term-card"><div class="term">Engineer</div><div class="def">Designs roads and bridges</div></div><div class="term-card"><div class="term">Doctor</div><div class="def">Treats sick people</div></div></div>`},
+      {title:'🎉 National Festivals', content:`<div class="term-grid"><div class="term-card"><div class="term">Republic Day</div><div class="def">26 January</div></div><div class="term-card"><div class="term">Independence Day</div><div class="def">15 August</div></div><div class="term-card"><div class="term">Gandhi Jayanti</div><div class="def">2 October — Birthday of Father of Nation</div></div></div><div class="example"><b>Religious Festivals:</b><br>Holi (spring, colours), Diwali (festival of lights)<br>Christmas (25 December), Eid (end of Ramzan)<br>Onam (Kerala), Durga Puja (Kolkata)</div>`},
+      {title:'🗺️ Cities of India', content:`<div class="term-grid"><div class="term-card"><div class="term">Delhi</div><div class="def">Red Fort, Qutub Minar, located on Yamuna river</div></div><div class="term-card"><div class="term">Mumbai</div><div class="def">Capital of Maharashtra, Gateway of India</div></div><div class="term-card"><div class="term">Agra</div><div class="def">Taj Mahal — built by Shah Jahan</div></div><div class="term-card"><div class="term">Jaipur</div><div class="def">Pink city, Hawa Mahal</div></div><div class="term-card"><div class="term">Bengaluru</div><div class="def">Garden city</div></div><div class="term-card"><div class="term">Bhopal</div><div class="def">City of Lakes</div></div><div class="term-card"><div class="term">Hyderabad</div><div class="def">Capital of Telangana, biryani</div></div><div class="term-card"><div class="term">Kolkata</div><div class="def">Durga Puja, Howrah Bridge on Hooghly</div></div></div>`},
+      {title:'⚖️ Laws and Rules', content:`<p>A <span class="highlight">law</span> is a rule that everyone in a country must follow.</p><div class="example">Traffic light rules:<br>🟢 Green = Go<br>🔴 Red = Stop<br>🟡 Yellow = Slow down<br><br>If you break a law, you are <b>punished</b>.</div><p class="mt">Laws protect us from <b>harm</b>. People who make rules for the country are called <b>Leaders</b>.</p>`},
+      {title:'♻️ Pollution', content:`<div class="term-grid"><div class="term-card"><div class="term">Air Pollution</div><div class="def">Harmful gases pollute the air</div></div><div class="term-card"><div class="term">Water Pollution</div><div class="def">Throwing garbage in rivers</div></div><div class="term-card"><div class="term">Land Pollution</div><div class="def">Garbage on streets</div></div><div class="term-card"><div class="term">Noise Pollution</div><div class="def">Loud sounds</div></div></div><p class="mt">The Three R's: <span class="highlight">Reduce, Reuse, Recycle</span></p>`},
+    ],
+    quiz:[
+      {q:'Who travels to space?',opts:['Doctor','Astronaut','Lawyer','Engineer'],ans:1,exp:'An Astronaut travels to space!'},
+      {q:'Republic Day is celebrated on:',opts:['15 August','2 October','26 January','25 December'],ans:2,exp:'Republic Day is celebrated on 26 January!'},
+      {q:'The birthday of the Father of the Nation is celebrated as:',opts:['Republic Day','Independence Day','Gandhi Jayanti','Diwali'],ans:2,exp:'Mahatma Gandhi\'s birthday (2 October) is Gandhi Jayanti!'},
+      {q:'The spring festival when people play with colour is:',opts:['Diwali','Christmas','Holi','Onam'],ans:2,exp:'Holi is the festival of colours celebrated in spring!'},
+      {q:'When we break a rule we are:',opts:['praised','punished','given good marks','rewarded'],ans:1,exp:'Breaking a rule leads to punishment!'},
+      {q:'We must cross the road when the traffic light is:',opts:['green','red','yellow','blue'],ans:0,exp:'Green means GO! We cross when the light is green.'},
+      {q:'The Taj Mahal is in which Indian city?',opts:['Delhi','Mumbai','Agra','Jaipur'],ans:2,exp:'The Taj Mahal is in Agra, built by Shah Jahan!'},
+      {q:'Mumbai is the capital of:',opts:['Gujarat','Maharashtra','Chennai','Goa'],ans:1,exp:'Mumbai is the capital of Maharashtra!'},
+      {q:'Durga Puja is famous festival of:',opts:['Delhi','Mumbai','Kolkata','Agra'],ans:2,exp:'Durga Puja is the most famous festival of Kolkata!'},
+      {q:'The Sabarmati ashram is in:',opts:['Lucknow','Hyderabad','Ahmedabad','Delhi'],ans:2,exp:'Mahatma Gandhi\'s Sabarmati Ashram is in Ahmedabad!'},
+      {q:'Recycling goods helps to ___ pollution.',opts:['increase','create','reduce','spread'],ans:2,exp:'Recycling reduces pollution by reusing materials!'},
+      {q:'The three R\'s are:',opts:['Read, Write, Run','Reduce, Reuse, Recycle','Rain, River, Road','Run, Rest, Relax'],ans:1,exp:'The 3 R\'s for environment: Reduce, Reuse, Recycle!'},
+      {q:'Delhi is located on the banks of the river:',opts:['Ganga','Yamuna','Narmada','Godavari'],ans:1,exp:'Delhi is on the banks of the Yamuna river!'},
+    ],
+    flashcards:[
+      {front:'26 January',frontSub:'Which day?',back:'Republic Day',backSub:'India became a republic on 26 Jan 1950'},
+      {front:'15 August',frontSub:'Which day?',back:'Independence Day',backSub:'India got independence in 1947'},
+      {front:'2 October',frontSub:'Which day?',back:'Gandhi Jayanti',backSub:'Birthday of Father of Nation - Mahatma Gandhi'},
+      {front:'Taj Mahal',frontSub:'Where is it?',back:'Agra',backSub:'Built by Mughal Emperor Shah Jahan'},
+      {front:'Durga Puja',frontSub:'Famous festival of?',back:'Kolkata (West Bengal)',backSub:'Celebrated with great enthusiasm'},
+      {front:'Garden City',frontSub:'Which city?',back:'Bengaluru',backSub:'Also India\'s IT capital'},
+      {front:'City of Lakes',frontSub:'Which city?',back:'Bhopal',backSub:'Capital of Madhya Pradesh'},
+      {front:'Three R\'s',frontSub:'What are they?',back:'Reduce, Reuse, Recycle',backSub:'To protect our environment'},
+      {front:'Traffic Light - RED',frontSub:'What to do?',back:'STOP!',backSub:'Green = Go | Yellow = Slow | Red = Stop'},
+      {front:'Kolkata\'s famous sweet',frontSub:'Name it',back:'Mishti Doi / Rasgulla',backSub:'Bengali sweets loved across India'},
+    ]
+  },
+  {
+    id:'gk', label:'General\nKnowledge', icon:'🌟', color:'#9B59B6',
+    desc:'Plants, animals, inventors, monuments',
+    modes:['learn','quiz','flashcard'],
+    learn:[
+      {title:'🌿 Medicinal Plants', content:`<div class="term-grid"><div class="term-card"><div class="term">Tulsi</div><div class="def">Queen of Herbs! Cures fever, cough, cold</div></div><div class="term-card"><div class="term">Aloe Vera</div><div class="def">Treats burns and skin irritation, helps digestion</div></div><div class="term-card"><div class="term">Ginger</div><div class="def">Tea good for sore throat</div></div><div class="term-card"><div class="term">Henna</div><div class="def">Leaves used as natural hair dye</div></div></div>`},
+      {title:'🦁 Amazing Animals', content:`<div class="term-grid"><div class="term-card"><div class="term">Kangaroo</div><div class="def">Has a pouch to carry its baby</div></div><div class="term-card"><div class="term">Ostrich</div><div class="def">Cannot fly but runs very fast</div></div><div class="term-card"><div class="term">Octopus</div><div class="def">Sea animal with eight arms</div></div><div class="term-card"><div class="term">Turtle</div><div class="def">Lays eggs but is NOT a bird</div></div><div class="term-card"><div class="term">Elephant</div><div class="def">Long trunk for breathing and picking things</div></div><div class="term-card"><div class="term">Snake</div><div class="def">Reptile with no legs</div></div></div>`},
+      {title:'💡 Great Inventions', content:`<div class="term-grid"><div class="term-card"><div class="term">Telephone</div><div class="def">Alexander Graham Bell</div></div><div class="term-card"><div class="term">Aeroplane</div><div class="def">Wright Brothers</div></div><div class="term-card"><div class="term">Computer</div><div class="def">Charles Babbage</div></div><div class="term-card"><div class="term">Television</div><div class="def">John Logie Baird</div></div><div class="term-card"><div class="term">World Wide Web</div><div class="def">Sir Tim Berners-Lee</div></div></div>`},
+      {title:'🏛️ Famous Monuments', content:`<div class="term-grid"><div class="term-card"><div class="term">Red Fort</div><div class="def">Delhi</div></div><div class="term-card"><div class="term">Taj Mahal</div><div class="def">Agra</div></div><div class="term-card"><div class="term">Qutub Minar</div><div class="def">Delhi</div></div><div class="term-card"><div class="term">Gateway of India</div><div class="def">Mumbai</div></div><div class="term-card"><div class="term">Eiffel Tower</div><div class="def">Paris, France</div></div><div class="term-card"><div class="term">Great Pyramid of Giza</div><div class="def">Oldest of Seven Wonders</div></div></div>`},
+      {title:'🌊 Oceans', content:`<div class="term-grid"><div class="term-card"><div class="term">Pacific</div><div class="def">Largest ocean on Earth</div></div><div class="term-card"><div class="term">Atlantic</div><div class="def">Busiest ocean in the world</div></div><div class="term-card"><div class="term">Arctic</div><div class="def">Smallest ocean</div></div><div class="term-card"><div class="term">Indian</div><div class="def">Only ocean named after a country</div></div></div>`},
+      {title:'🏆 Indian Achievements', content:`<div class="term-grid"><div class="term-card"><div class="term">C.V. Raman</div><div class="def">First Indian to win Nobel Prize in Physics</div></div><div class="term-card"><div class="term">Kalpana Chawala</div><div class="def">First Indian woman to go to space</div></div><div class="term-card"><div class="term">Tessy Thomas</div><div class="def">First Indian woman to head a missile project</div></div></div>`},
+    ],
+    quiz:[
+      {q:'Which plant is called the "Queen of Herbs"?',opts:['Mint','Neem','Tulsi','Basil'],ans:2,exp:'Tulsi is called the Queen of Herbs!'},
+      {q:'Which sea animal has eight arms?',opts:['Starfish','Octopus','Jellyfish','Crab'],ans:1,exp:'Octopus has eight arms!'},
+      {q:'Who invented the telephone?',opts:['Thomas Edison','Alexander Graham Bell','Wright Brothers','Charles Babbage'],ans:1,exp:'Alexander Graham Bell invented the telephone!'},
+      {q:'Who invented the computer?',opts:['Charles Babbage','Alan Turing','Bill Gates','Steve Jobs'],ans:0,exp:'Charles Babbage is called the Father of Computer!'},
+      {q:'Which bird cannot fly but runs very fast?',opts:['Penguin','Parrot','Ostrich','Peacock'],ans:2,exp:'Ostrich cannot fly but is the fastest running bird!'},
+      {q:'Which animal has a pouch to carry its baby?',opts:['Koala','Panda','Kangaroo','Elephant'],ans:2,exp:'Kangaroo has a pouch called a marsupium!'},
+      {q:'Which is the largest ocean on Earth?',opts:['Atlantic','Indian','Arctic','Pacific'],ans:3,exp:'Pacific is the largest ocean covering about one-third of Earth!'},
+      {q:'The Eiffel Tower is located in which city?',opts:['London','Rome','Paris','Berlin'],ans:2,exp:'The Eiffel Tower is in Paris, France!'},
+      {q:'Who invented the television?',opts:['Thomas Edison','John Logie Baird','Marconi','Tesla'],ans:1,exp:'John Logie Baird invented the television!'},
+      {q:'First Indian to win Nobel Prize in Physics?',opts:['Tagore','APJ Abdul Kalam','C.V. Raman','Satyendra Bose'],ans:2,exp:'C.V. Raman won the Nobel Prize in Physics in 1930!'},
+      {q:'Which ocean is named after a country?',opts:['Pacific','Atlantic','Indian','Arctic'],ans:2,exp:'The Indian Ocean is named after India!'},
+      {q:'Who invented the aeroplane?',opts:['Henry Ford','Nikola Tesla','Wright Brothers','Bell'],ans:2,exp:'The Wright Brothers (Orville and Wilbur) invented the aeroplane!'},
+      {q:'Oldest among the Seven Wonders of the World?',opts:['Colosseum','Great Wall','Great Pyramid of Giza','Eiffel Tower'],ans:2,exp:'The Great Pyramid of Giza is the oldest and only ancient wonder still standing!'},
+      {q:'Tulsi leaves help cure:',opts:['Broken bones','Fever, cough and cold','Eye problems','Stomachache only'],ans:1,exp:'Tulsi cures fever, cough, cold and headache — it\'s a medicinal plant!'},
+    ],
+    flashcards:[
+      {front:'Tulsi',frontSub:'Famous for?',back:'Queen of Herbs — cures fever, cough, cold',backSub:'Also treats headache!'},
+      {front:'Octopus',frontSub:'How many arms?',back:'Eight arms! 🐙',backSub:'Sea creature with 8 arms'},
+      {front:'Wright Brothers',frontSub:'What did they invent?',back:'Aeroplane ✈️',backSub:'First successful powered flight'},
+      {front:'Charles Babbage',frontSub:'What did he invent?',back:'Computer 💻',backSub:'Called Father of the Computer'},
+      {front:'Ostrich',frontSub:'What is special?',back:'Cannot fly but runs very fast!',backSub:'Largest living bird'},
+      {front:'C.V. Raman',frontSub:'Achievement?',back:'First Indian Nobel Prize in Physics',backSub:'Won in 1930'},
+      {front:'Pacific Ocean',frontSub:'What is it?',back:'Largest ocean on Earth 🌊',backSub:'Covers ⅓ of Earth\'s surface'},
+      {front:'Indian Ocean',frontSub:'What is special?',back:'Only ocean named after a country',backSub:'Named after India'},
+      {front:'Great Pyramid of Giza',frontSub:'What is it?',back:'Oldest of Seven Wonders',backSub:'Built in ancient Egypt'},
+      {front:'John Logie Baird',frontSub:'What did he invent?',back:'Television 📺',backSub:'Changed how we watch the world!'},
+    ]
+  },
+  {
+    id:'computer', label:'Computer\nScience', icon:'💻', color:'#7EC8E3',
+    desc:'Internet, Scratch, AI & Algorithms',
+    modes:['learn','quiz','flashcard','video'],
+    learn:[
+      {title:'🌐 The Internet', content:`<p>The Internet is popularly called the <span class="highlight">Net</span>. It connects computers all over the world so they can exchange information.</p><div class="example"><b>URL</b> (Uniform Resource Locator) = unique address of a website<br><b>Website</b> = collection of web pages on same topic<br><b>Web Browser</b> = software to open web pages (Chrome, Firefox)<br><b>WWW</b> = World Wide Web<br><b>Home Page</b> = first page that appears in a browser<br><b>Link/Hyperlink</b> = built-in connection to another web page</div>`},
+      {title:'📧 E-mail & Social Media', content:`<p><b>E-mail</b> (Electronic mail) lets us send and receive messages to/from anyone, anywhere!</p><p class="mt"><b>Social Networks</b> connect people who share similar interests.</p><div class="example">Facebook = popular social networking site<br>Instagram, Twitter = other social networks<br>Google = popular search engine</div><div class="example">We can: chat, browse, shop, learn on the internet!<br>We CANNOT know exactly how many computers are on the internet.</div>`},
+      {title:'🐱 Scratch Programming', content:`<div class="term-grid"><div class="term-card"><div class="term">Sprite</div><div class="def">Objects in a Scratch project (like a cat!)</div></div><div class="term-card"><div class="term">Script</div><div class="def">Stack of blocks = step-wise instructions for the sprite. Also called a PROGRAM!</div></div><div class="term-card"><div class="term">Blocks Palette</div><div class="def">Shows ALL available blocks for programming</div></div><div class="term-card"><div class="term">Green Flag</div><div class="def">Click to RUN your program!</div></div><div class="term-card"><div class="term">Costumes</div><div class="def">Different pictures/looks a sprite can have</div></div><div class="term-card"><div class="term">.sb3</div><div class="def">File extension of Scratch program</div></div></div><p class="mt">Block types: <b>Motion</b> (movement) • <b>Pen</b> (drawing) • <b>Control</b> (events) • <b>Looks</b> • <b>Sound</b></p>`},
+      {title:'🤖 Artificial Intelligence (AI)', content:`<p>AI is a way of making <span class="highlight">intelligent computer programs or robots</span>!</p><div class="term-grid"><div class="term-card"><div class="term">Weak AI</div><div class="def">Current AI systems — can do specific tasks</div></div><div class="term-card"><div class="term">Strong AI</div><div class="def">Can accomplish complex tasks on their own (future!)</div></div><div class="term-card"><div class="term">Sophia</div><div class="def">Social humanoid robot by Hanson Robotics, activated 2016</div></div><div class="term-card"><div class="term">Quick, Draw!</div><div class="def">Free AI game by Google — millions of drawings dataset</div></div></div><p class="mt">AI always <b>mimics</b> human behaviour. At present all AI systems are <b>Weak AI</b>.</p>`},
+      {title:'🔧 Algorithms & Debugging', content:`<p>An <span class="highlight">Algorithm</span> is a step-by-step instruction to solve a problem.</p><div class="example"><b>Bug</b> = mistake found while writing an algorithm<br><b>Debugging</b> = process of finding bugs and removing them<br>After debugging, the algorithm works <b>correctly</b>!</div><p class="mt"><b>Sequence</b> = particular order to perform step-wise instructions<br><b>if-then</b> = branching conditional statement<br><b>Abstraction</b> = filtering out data we need from the whole</div>`},
+    ],
+    quiz:[
+      {q:'_____ is a popular social networking site.',opts:['Google','Facebook','Adobe','Microsoft'],ans:1,exp:'Facebook is a popular social networking site!'},
+      {q:'Every website has its unique address called:',opts:['TRC','SBR','URL','Port'],ans:2,exp:'URL (Uniform Resource Locator) is the unique address of a website!'},
+      {q:'The full form of E-mail is:',opts:['Elec-mail','Electronic device','Electronic mail','Electric mail'],ans:2,exp:'E-mail = Electronic mail!'},
+      {q:'_____ is a collection of web pages on the same topic.',opts:['Web page','Website','Web home','Web'],ans:1,exp:'A Website is a collection of web pages on the same topic!'},
+      {q:'The Internet is popularly called:',opts:['Tell','Bell','Net','Play'],ans:2,exp:'The Internet is popularly called the Net!'},
+      {q:'The full form of WWW is:',opts:['Webpage','Website','World Wide Web','Web Design'],ans:2,exp:'WWW = World Wide Web!'},
+      {q:'_____ is the popular search engine.',opts:['Bing','Link','URL','Google'],ans:3,exp:'Google is the most popular search engine in the world!'},
+      {q:'Scratch project is made up of objects called:',opts:['Bugs','Sprites','Pattern','Blocks'],ans:1,exp:'Sprites are the objects in a Scratch project!'},
+      {q:'Script in Scratch is also known as:',opts:['Game','Program','Cat','Stage'],ans:1,exp:'A Script is also called a Program!'},
+      {q:'Click the ___ to run your Scratch program.',opts:['Red flag','Stop sign','Green flag','Blue button'],ans:2,exp:'Click the Green Flag to start/run your Scratch program!'},
+      {q:'The file extension of Scratch is:',opts:['.b3','.sb3','.sb','.script'],ans:1,exp:'Scratch files are saved with .sb3 extension!'},
+      {q:'An Algorithm is:',opts:['A bug','Step-by-step instructions to solve a problem','A type of sprite','A color block'],ans:1,exp:'An Algorithm is a step-by-step set of instructions to solve a problem!'},
+      {q:'Mistakes in an algorithm are called:',opts:['Errors','Glitches','Bugs','Crashes'],ans:2,exp:'Mistakes in algorithms are called Bugs!'},
+      {q:'After debugging, the algorithm works:',opts:['Wrong','Slowly','Correctly','Faster only'],ans:2,exp:'Debugging removes errors, so the algorithm works CORRECTLY!'},
+      {q:'Sophia the robot was activated in:',opts:['2019','2020','2016','2017'],ans:2,exp:'Sophia, the social humanoid robot by Hanson Robotics, was activated in 2016!'},
+      {q:'At present, all AI systems are:',opts:['Weak AI','Strong AI','Simple AI','Natural AI'],ans:0,exp:'Currently all AI systems are Weak AI — they can do specific tasks!'},
+    ],
+    flashcards:[
+      {front:'URL',frontSub:'What does it stand for?',back:'Uniform Resource Locator',backSub:'Unique address of a website'},
+      {front:'WWW',frontSub:'What does it stand for?',back:'World Wide Web',backSub:'The system of web pages on the internet'},
+      {front:'E-mail',frontSub:'Full form?',back:'Electronic mail',backSub:'Send/receive messages anywhere instantly'},
+      {front:'Sprite',frontSub:'In Scratch, what is it?',back:'Object in a Scratch project',backSub:'Default sprite = Cat!'},
+      {front:'Script',frontSub:'In Scratch, what is it?',back:'Stack of blocks = Program',backSub:'Step-wise instructions for the sprite'},
+      {front:'.sb3',frontSub:'What file is this?',back:'Scratch program file',backSub:'File extension of saved Scratch projects'},
+      {front:'Green Flag',frontSub:'In Scratch, what does it do?',back:'Runs/starts your program! ▶',backSub:'Click it to see your code in action'},
+      {front:'Algorithm',frontSub:'What is it?',back:'Step-by-step instructions to solve a problem',backSub:'Like a recipe for a computer!'},
+      {front:'Bug',frontSub:'In coding, what is it?',back:'A mistake in an algorithm',backSub:'Debugging = finding and fixing bugs'},
+      {front:'Sophia',frontSub:'What is she?',back:'Social humanoid robot by Hanson Robotics',backSub:'Activated in 2016, mimics humans'},
+    ],
+    slides:[
+      {title:'What is the Internet? 🌐',visual:'🌍',content:'The Internet is like a <b>giant web</b> connecting millions of computers worldwide! It helps us share information, chat, shop and learn!',anim:'bounce'},
+      {title:'URL — Your Website\'s Address 📍',visual:'🔗',content:'Every website has a <b>URL</b> (Uniform Resource Locator) — it\'s like the home address of a website!<br><br>Example: <b>www.google.com</b>',anim:'wiggle'},
+      {title:'Meet Scratch\'s Cat! 🐱',visual:'😺',content:'In Scratch, the <b>Sprite</b> is your character (default = cat!).<br>A <b>Script</b> is a set of blocks = your program.<br>Click the <b>Green Flag</b> to run!',anim:'bounce'},
+      {title:'What is AI? 🤖',visual:'🤖',content:'Artificial Intelligence (AI) makes computers <b>think like humans</b>!<br><br>Meet <b>Sophia</b> — the humanoid robot that mimics human behaviour!',anim:'pop'},
+      {title:'Algorithm = Recipe for Computers! 📋',visual:'📋',content:'An <b>Algorithm</b> is like a recipe:<br>Step 1, Step 2, Step 3...<br><br><b>Bug</b> = mistake in the recipe<br><b>Debugging</b> = fixing the mistake!',anim:'wiggle'},
+    ]
+  },
+];
+
+// Parts of Speech data for grammar game
+const POS_DATA = [
+  { pos:'NOUN', color:'#FF6B6B', label:'Noun', desc:'Person, place, thing, animal', examples:'dog, school, India, Darsh' },
+  { pos:'PRONOUN', color:'#FF8B94', label:'Pronoun', desc:'Replaces a noun', examples:'I, he, she, it, they, we' },
+  { pos:'VERB', color:'#4ECDC4', label:'Verb', desc:'Action/doing word', examples:'run, eat, play, is, was' },
+  { pos:'ADVERB', color:'#A8E6CF', label:'Adverb', desc:'Describes how/when/where', examples:'quickly, loudly, here' },
+  { pos:'ADJECTIVE', color:'#FFD700', label:'Adjective', desc:'Describes a noun', examples:'big, red, fast, twelve' },
+  { pos:'PREPOSITION', color:'#9B59B6', label:'Preposition', desc:'Position / time relation', examples:'in, on, at, under, above' },
+  { pos:'INTERJECTION', color:'#FF7F50', label:'Interjection', desc:'Shows strong feeling!', examples:'Wow! Ouch! Hurray! Oh!' },
+  { pos:'CONJUNCTION', color:'#7EC8E3', label:'Conjunction', desc:'Joins words/sentences', examples:'and, but, or, so' },
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  // Build avatar row
+  const ar = document.getElementById('avatarRow');
+  avatars.forEach((av, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn' + (i === 0 ? ' selected' : '');
+    btn.textContent = av;
+    btn.onclick = () => {
+      document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      STATE.player.avatar = av;
+    };
+    ar.appendChild(btn);
+  });
+
+  // Build subject grid
+  const sg = document.getElementById('subjectGrid');
+  SUBJECTS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.style.setProperty('--card-color', s.color);
+    const savedScore = parseInt(localStorage.getItem('score_' + s.id) || '0');
+    const stars = savedScore >= 80 ? '⭐⭐⭐' : savedScore >= 50 ? '⭐⭐' : savedScore >= 20 ? '⭐' : '';
+    card.innerHTML = `<span class="icon">${s.icon}</span><div class="label">${s.label.replace('\n','<br>')}</div><div class="stars">${stars}</div>`;
+    card.onclick = () => openSubject(s.id);
+    sg.appendChild(card);
+  });
+}
+
+function startAdventure() {
+  const name = document.getElementById('playerName').value.trim() || 'Explorer';
+  STATE.player.name = name;
+  document.getElementById('topAvatar').textContent = STATE.player.avatar;
+  document.getElementById('topName').textContent = name;
+  updateScoreDisplay();
+  showScreen('subjectMap');
+}
+
+function openSubject(id) {
+  const sub = SUBJECTS.find(s => s.id === id);
+  STATE.currentSubject = sub;
+  document.getElementById('hubTitle').textContent = sub.icon + ' ' + sub.label.replace('\n', ' ');
+  document.getElementById('hubDesc').textContent = sub.desc;
+  document.getElementById('hubScore').textContent = STATE.score;
+  document.getElementById('hubLives').textContent = '❤️'.repeat(STATE.lives);
+
+  // Build mode grid
+  const mg = document.getElementById('modeGrid');
+  mg.innerHTML = '';
+  const modes = {
+    learn: { icon:'📚', label:'Learn', desc:'Study the topic with visual notes' },
+    quiz:  { icon:'🎯', label:'Quiz Game', desc:'Answer questions, earn stars!' },
+    grammar:{ icon:'🔤', label:'Grammar Hunter', desc:'Label words in sentences!' },
+    flashcard:{ icon:'🃏', label:'Flash Cards', desc:'Quick-fire revision' },
+    video: { icon:'🎬', label:'Story Time', desc:'Fun animated presentation' },
+  };
+  (sub.modes || ['learn','quiz','flashcard']).forEach(m => {
+    const md = modes[m];
+    if (!md) return;
+    const card = document.createElement('div');
+    card.className = 'mode-card';
+    card.innerHTML = `<span class="m-icon">${md.icon}</span><div class="m-label">${md.label}</div><div class="m-desc">${md.desc}</div>`;
+    card.onclick = () => startMode(m);
+    mg.appendChild(card);
+  });
+
+  showScreen('subjectHub');
+}
+
+function startMode(mode) {
+  const sub = STATE.currentSubject;
+  if (mode === 'learn') startLearn();
+  else if (mode === 'quiz') startQuiz();
+  else if (mode === 'grammar') startGrammar();
+  else if (mode === 'flashcard') startFlash();
+  else if (mode === 'video') startVideo();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LEARN MODE
+// ═══════════════════════════════════════════════════════════════
+function startLearn() {
+  const sub = STATE.currentSubject;
+  document.getElementById('learnTitle').textContent = sub.icon + ' ' + sub.label.replace('\n',' ');
+  const lc = document.getElementById('learnContent');
+  lc.innerHTML = '';
+  (sub.learn || []).forEach(card => {
+    const div = document.createElement('div');
+    div.className = 'learn-card';
+    div.innerHTML = `<h3>${card.title}</h3>${card.content}`;
+    lc.appendChild(div);
+  });
+  showScreen('learnScreen');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  QUIZ MODE
+// ═══════════════════════════════════════════════════════════════
+function startQuiz() {
+  const sub = STATE.currentSubject;
+  const qs = [...(sub.quiz || [])].sort(() => Math.random() - 0.5);
+  STATE.quiz = { questions: qs, current: 0, correct: 0, wrong: 0, subScore: 0 };
+  STATE.lives = 3;
+  document.getElementById('quizScore').textContent = STATE.score;
+  document.getElementById('quizLives').textContent = '❤️'.repeat(3);
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = STATE.quiz;
+  const total = q.questions.length;
+  if (q.current >= total) { showResult(); return; }
+
+  const curr = q.questions[q.current];
+  document.getElementById('qCounter').textContent = `Question ${q.current + 1} of ${total}`;
+  document.getElementById('progressBar').style.width = ((q.current / total) * 100) + '%';
+  document.getElementById('qTag').textContent = STATE.currentSubject.label.replace('\n', ' ');
+  document.getElementById('qText').textContent = curr.q;
+  document.getElementById('feedbackBox').classList.remove('show');
+
+  const og = document.getElementById('optionsGrid');
+  og.innerHTML = '';
+  const shuffled = curr.opts.map((o, i) => ({ o, i })).sort(() => Math.random() - 0.5);
+  const correctShuffledIdx = shuffled.findIndex(x => x.i === curr.ans);
+
+  shuffled.forEach(({ o, i }, si) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<b>${['A','B','C','D'][si]}.</b> ${o}`;
+    btn.onclick = () => selectAnswer(si, i === curr.ans, curr.exp, shuffled);
+    og.appendChild(btn);
+  });
+}
+
+function selectAnswer(selectedIdx, isCorrect, explanation, shuffled) {
+  document.querySelectorAll('.opt-btn').forEach((btn, i) => {
+    btn.disabled = true;
+    if (shuffled[i].i === STATE.quiz.questions[STATE.quiz.current].ans) {
+      btn.classList.add('correct');
+    } else if (i === selectedIdx && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+
+  const fb = document.getElementById('feedbackBox');
+  fb.classList.add('show');
+
+  if (isCorrect) {
+    STATE.quiz.correct++;
+    STATE.score += 10;
+    STATE.quiz.subScore += 10;
+    document.getElementById('fIcon').textContent = '🎉';
+    document.getElementById('fText').innerHTML = `<b style="color:var(--correct)">Correct! +10 points</b><br>${explanation}`;
+    showToast('✅ Correct! +10 points', 'correct');
+  } else {
+    STATE.quiz.wrong++;
+    STATE.lives = Math.max(0, STATE.lives - 1);
+    document.getElementById('fIcon').textContent = '💡';
+    document.getElementById('fText').innerHTML = `<b style="color:var(--wrong)">Not quite!</b> ${explanation}`;
+    showToast('❌ Wrong! Try to learn from this.', 'wrong');
+    document.getElementById('quizLives').textContent = '❤️'.repeat(STATE.lives) + '🖤'.repeat(3 - STATE.lives);
+  }
+  updateScoreDisplay();
+}
+
+function nextQuestion() {
+  STATE.quiz.current++;
+  document.getElementById('feedbackBox').classList.remove('show');
+  renderQuestion();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GRAMMAR MODE
+// ═══════════════════════════════════════════════════════════════
+function startGrammar() {
+  const sub = STATE.currentSubject;
+  // Use grammar sentences from English 2 or fallback generic ones
+  STATE.gram.sentences = sub.grammarSentences || getGenericGramSentences();
+  STATE.gram.current = 0;
+  STATE.gram.selected_pos = null;
+  STATE.gram.score = 0;
+
+  // Build POS legend
+  const pl = document.getElementById('posLegend');
+  pl.innerHTML = '';
+  POS_DATA.forEach(p => {
+    const tag = document.createElement('div');
+    tag.className = `pos-tag ${p.pos}`;
+    tag.textContent = p.label;
+    tag.dataset.pos = p.pos;
+    tag.onclick = () => selectPOS(p.pos);
+    pl.appendChild(tag);
+  });
+
+  // Build POS reference
+  const pr = document.getElementById('posReference');
+  pr.innerHTML = '';
+  POS_DATA.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'term-card';
+    card.style.borderTop = `3px solid ${p.color}`;
+    card.innerHTML = `<div class="term" style="color:${p.color}">${p.label}</div><div class="def">${p.desc}</div><div class="eg">${p.examples}</div>`;
+    pr.appendChild(card);
+  });
+
+  document.getElementById('gramScore').textContent = STATE.gram.score;
+  showScreen('grammarScreen');
+  renderGramSentence();
+}
+
+function getGenericGramSentences() {
+  return [
+    {
+      sentence:['Wow','!','The','big','dog','runs','very','fast','in','the','park','.'],
+      labels:{0:'INTERJECTION',3:'ADJECTIVE',4:'NOUN',5:'VERB',6:'ADVERB',7:'ADVERB',8:'PREPOSITION',10:'NOUN'},
+      explanation:'Wow! = interjection • big = adjective • dog,park = nouns • runs = verb • very,fast = adverbs • in = preposition'
+    },
+    {
+      sentence:['She','sings','beautifully','and','dances','gracefully','.'],
+      labels:{0:'PRONOUN',1:'VERB',2:'ADVERB',3:'CONJUNCTION',4:'VERB',5:'ADVERB'},
+      explanation:'She = pronoun • sings,dances = verbs • beautifully,gracefully = adverbs • and = conjunction'
+    },
+  ];
+}
+
+function renderGramSentence() {
+  const sent = STATE.gram.sentences[STATE.gram.current];
+  const area = document.getElementById('gramSentenceArea');
+  area.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'sentence-display';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:0.8rem;color:var(--muted);margin-bottom:10px';
+  title.textContent = `Sentence ${STATE.gram.current + 1} of ${STATE.gram.sentences.length}`;
+  div.appendChild(title);
+
+  const wordDiv = document.createElement('div');
+  sent.sentence.forEach((word, idx) => {
+    if (word === '.' || word === '!' || word === ',') {
+      const span = document.createElement('span');
+      span.textContent = word;
+      span.style.marginRight = '4px';
+      wordDiv.appendChild(span);
+      return;
+    }
+    const token = document.createElement('span');
+    token.className = 'word-token';
+    token.textContent = word;
+    token.dataset.idx = idx;
+    token.dataset.word = word;
+    if (sent.labels[idx]) {
+      token.classList.add('labeled', sent.labels[idx]);
+      token.dataset.correct = sent.labels[idx];
+    }
+    token.onclick = () => labelWord(token, idx);
+    wordDiv.appendChild(token);
+  });
+  div.appendChild(wordDiv);
+  area.appendChild(div);
+  document.getElementById('gramFeedback').innerHTML = '';
+}
+
+function selectPOS(pos) {
+  STATE.gram.selected_pos = pos;
+  document.querySelectorAll('.pos-tag').forEach(t => {
+    t.classList.toggle('selected', t.dataset.pos === pos);
+  });
+}
+
+function labelWord(token, idx) {
+  if (!STATE.gram.selected_pos) {
+    showToast('👆 First select a word type from the legend!', '');
+    return;
+  }
+  const oldClass = token.className.split(' ').find(c => POS_DATA.some(p => p.pos === c));
+  if (oldClass) token.classList.remove(oldClass, 'labeled');
+  token.classList.add('labeled', STATE.gram.selected_pos);
+}
+
+function checkGrammar() {
+  const sent = STATE.gram.sentences[STATE.gram.current];
+  let correct = 0, total = Object.keys(sent.labels).length;
+  document.querySelectorAll('.word-token').forEach(token => {
+    const idx = parseInt(token.dataset.idx);
+    const expected = sent.labels[idx];
+    const labeled = token.className.split(' ').find(c => POS_DATA.some(p => p.pos === c));
+    if (expected && labeled === expected) { correct++; token.style.boxShadow = '0 0 10px var(--correct)'; }
+    else if (expected) { token.style.boxShadow = '0 0 10px var(--wrong)'; }
+  });
+
+  const pts = correct * 5;
+  STATE.gram.score += pts;
+  STATE.score += pts;
+  document.getElementById('gramScore').textContent = STATE.gram.score;
+  updateScoreDisplay();
+
+  const fb = document.getElementById('gramFeedback');
+  fb.innerHTML = `<div class="learn-card"><h3>${correct}/${total} correct! +${pts} points</h3><p><b>Explanation:</b> ${sent.explanation}</p></div>`;
+  showToast(`${correct}/${total} words correct! +${pts} pts`, correct === total ? 'correct' : '');
+}
+
+function nextGramSentence() {
+  STATE.gram.current = (STATE.gram.current + 1) % STATE.gram.sentences.length;
+  renderGramSentence();
+}
+
+function showGramHint() {
+  const sent = STATE.gram.sentences[STATE.gram.current];
+  showToast('💡 ' + sent.explanation.split('•')[0], '');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FLASHCARD MODE
+// ═══════════════════════════════════════════════════════════════
+function startFlash() {
+  const sub = STATE.currentSubject;
+  STATE.flash = { cards: [...(sub.flashcards || [])].sort(() => Math.random() - 0.5), current: 0, flipped: false };
+  showScreen('flashScreen');
+  renderFlash();
+}
+
+function renderFlash() {
+  const f = STATE.flash;
+  const card = f.cards[f.current];
+  document.getElementById('flashCounter').textContent = `${f.current + 1} / ${f.cards.length}`;
+  document.getElementById('flashFrontIcon').textContent = '❓';
+  document.getElementById('flashFrontText').textContent = card.front;
+  document.getElementById('flashFrontSub').textContent = card.frontSub || '';
+  document.getElementById('flashBackText').textContent = card.back;
+  document.getElementById('flashBackSub').textContent = card.backSub || '';
+  document.getElementById('flashcard').classList.remove('flipped');
+  f.flipped = false;
+}
+
+function flipFlashcard() {
+  STATE.flash.flipped = !STATE.flash.flipped;
+  document.getElementById('flashcard').classList.toggle('flipped');
+}
+
+function nextFlash() {
+  STATE.flash.current = (STATE.flash.current + 1) % STATE.flash.cards.length;
+  renderFlash();
+}
+
+function prevFlash() {
+  STATE.flash.current = (STATE.flash.current - 1 + STATE.flash.cards.length) % STATE.flash.cards.length;
+  renderFlash();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VIDEO / PRESENTATION MODE
+// ═══════════════════════════════════════════════════════════════
+function startVideo() {
+  const sub = STATE.currentSubject;
+  STATE.slides = { data: sub.slides || [], current: 0 };
+  showScreen('videoScreen');
+  renderSlide();
+  buildSlideDots();
+}
+
+function renderSlide() {
+  const slides = STATE.slides.data;
+  if (!slides.length) return;
+  const s = slides[STATE.slides.current];
+  const sc = document.getElementById('slideContent');
+  sc.innerHTML = `
+    <div class="video-slide active">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:0.8rem;color:var(--muted)">Slide ${STATE.slides.current + 1} of ${slides.length}</div>
+        <h2 style="font-size:1.5rem;margin:10px 0;color:var(--accent1)">${s.title}</h2>
+      </div>
+      <div class="visual-demo">
+        <span style="font-size:5rem;animation:${s.anim || 'bounce'} 1s ease infinite">${s.visual}</span>
+      </div>
+      <div style="margin-top:16px;line-height:1.8;font-size:1.05rem">${s.content}</div>
+    </div>`;
+  document.querySelectorAll('.slide-dot').forEach((d, i) => d.classList.toggle('active', i === STATE.slides.current));
+}
+
+function buildSlideDots() {
+  const sn = document.getElementById('slideNav');
+  sn.innerHTML = '';
+  STATE.slides.data.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'slide-dot' + (i === 0 ? ' active' : '');
+    btn.onclick = () => { STATE.slides.current = i; renderSlide(); };
+    sn.appendChild(btn);
+  });
+}
+
+function nextSlide() {
+  if (STATE.slides.current < STATE.slides.data.length - 1) { STATE.slides.current++; renderSlide(); }
+  else showToast('🎉 Presentation complete! Great learning!', 'correct');
+}
+
+function prevSlide() {
+  if (STATE.slides.current > 0) { STATE.slides.current--; renderSlide(); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESULT SCREEN
+// ═══════════════════════════════════════════════════════════════
+function showResult() {
+  const q = STATE.quiz;
+  const total = q.questions.length;
+  const pct = Math.round((q.correct / total) * 100);
+  const stars = pct >= 90 ? '⭐⭐⭐' : pct >= 60 ? '⭐⭐' : '⭐';
+  const emoji = pct >= 90 ? '🏆' : pct >= 60 ? '🎉' : '💪';
+  const msg = pct >= 90 ? 'Outstanding! You\'re a Star!' : pct >= 60 ? 'Great Job! Keep it up!' : 'Good Try! Review and retry!';
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultMsg').textContent = msg;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `${q.correct}/${total}`;
+  document.getElementById('resultBreakdown').innerHTML = `<span>✅ ${q.correct} Correct</span><span>❌ ${q.wrong} Wrong</span><span>📊 ${pct}%</span>`;
+
+  // Badges
+  const badges = [];
+  if (pct === 100) badges.push({ icon:'🏆', label:'Perfect!', val:'100%' });
+  if (q.correct >= 5) badges.push({ icon:'🔥', label:'On Fire!', val: `${q.correct} Correct!` });
+  badges.push({ icon:'⭐', label:'Stars Earned', val: stars });
+  badges.push({ icon:STATE.currentSubject.icon, label:'Subject', val: STATE.currentSubject.label.replace('\n',' ') });
+
+  const br = document.getElementById('resultBadges');
+  br.innerHTML = badges.map(b => `<div class="achievement"><span class="ach-icon">${b.icon}</span><div class="ach-label">${b.label}</div><div class="ach-val">${b.val}</div></div>`).join('');
+
+  // Save score
+  localStorage.setItem('score_' + STATE.currentSubject.id, pct);
+
+  if (pct >= 60) launchConfetti();
+  updateScoreDisplay();
+  showScreen('resultScreen');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CONFETTI
+// ═══════════════════════════════════════════════════════════════
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  const colors = ['#FFD700','#FF6B6B','#4ECDC4','#A8E6CF','#FF8B94','#7EC8E3','#9B59B6'];
+
+  for (let i = 0; i < 120; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -20,
+      r: Math.random() * 8 + 4,
+      d: Math.random() * 2 + 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngle: 0,
+      tiltAngleInc: Math.random() * 0.07 + 0.05
+    });
+  }
+
+  let frame = 0;
+  function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = 0.9;
+      ctx.ellipse(p.x, p.y, p.r, p.r * 0.5, p.tiltAngle, 0, Math.PI * 2);
+      ctx.fill();
+      p.y += p.d;
+      p.x += Math.sin(frame * 0.01) * 1.5;
+      p.tiltAngle += p.tiltAngleInc;
+    });
+    frame++;
+    if (frame < 200) requestAnimationFrame(drawConfetti);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  drawConfetti();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goBack(screenId) {
+  showScreen(screenId);
+  updateScoreDisplay();
+}
+
+function updateScoreDisplay() {
+  ['totalScore', 'hubScore', 'quizScore'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = STATE.score;
+  });
+  ['livesDisplay', 'hubLives', 'quizLives'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '❤️'.repeat(Math.max(0, STATE.lives)) + '🖤'.repeat(Math.max(0, 3 - STATE.lives));
+  });
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════════
+init();
+
+// Welcome animation
+window.addEventListener('load', () => {
+  document.querySelector('.logo').style.animation = 'pulse 3s ease-in-out infinite';
+});
+</script>
+</body>
+</html>
