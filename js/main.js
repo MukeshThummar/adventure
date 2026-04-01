@@ -19,6 +19,9 @@ const avatars = ['🧑‍🚀','👩‍🚀','🦸','👧','👦','🧒','🧑�
 //  INIT
 // ═══════════════════════════════════════════════════════════════
 function init() {
+  // Initialize translator
+  TRANSLATOR.init();
+
   // Build avatar row
   const ar = document.getElementById('avatarRow');
   avatars.forEach((av, i) => {
@@ -89,7 +92,7 @@ function openSubject(id) {
 
 function startMode(mode) {
   const sub = STATE.currentSubject;
-  if (mode === 'learn') startLearn();
+  if (mode === 'learn') startLearn().catch(e => console.error('Error starting learn mode:', e));
   else if (mode === 'quiz') startQuiz();
   else if (mode === 'grammar') startGrammar();
   else if (mode === 'flashcard') startFlash();
@@ -99,17 +102,52 @@ function startMode(mode) {
 // ═══════════════════════════════════════════════════════════════
 //  LEARN MODE
 // ═══════════════════════════════════════════════════════════════
-function startLearn() {
+async function startLearn() {
   const sub = STATE.currentSubject;
   document.getElementById('learnTitle').textContent = sub.icon + ' ' + sub.label.replace('\n',' ');
   const lc = document.getElementById('learnContent');
   lc.innerHTML = '';
-  (sub.learn || []).forEach(card => {
+  
+  const cards = sub.learn || [];
+  for (const card of cards) {
     const div = document.createElement('div');
     div.className = 'learn-card';
-    div.innerHTML = `<h3>${card.title}</h3>${card.content}`;
+    
+    // Translate title if needed
+    let translatedTitle = card.title;
+    if (TRANSLATOR.currentLanguage !== 'en') {
+      translatedTitle = await TRANSLATOR.translate(card.title);
+    }
+    
+    // Translate content if needed
+    let translatedContent = card.content;
+    if (TRANSLATOR.currentLanguage !== 'en') {
+      translatedContent = await TRANSLATOR.translate(card.content);
+    }
+    
+    const h3 = document.createElement('h3');
+    h3.textContent = translatedTitle;
+    
+    // Add speech button for title
+    const btnGroup = document.createElement('div');
+    btnGroup.style.cssText = 'display:inline-flex;gap:8px;align-items:center';
+    const speechBtn = document.createElement('button');
+    speechBtn.type = 'button';
+    speechBtn.className = 'speech-btn';
+    speechBtn.innerHTML = '🔊';
+    speechBtn.title = 'Hear the title';
+    speechBtn.onclick = () => TRANSLATOR.speak(card.title);
+    btnGroup.appendChild(h3);
+    btnGroup.appendChild(speechBtn);
+    div.appendChild(btnGroup);
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.innerHTML = translatedContent;
+    div.appendChild(contentDiv);
+    
     lc.appendChild(div);
-  });
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
   showScreen('learnScreen');
 }
 
@@ -127,7 +165,7 @@ function startQuiz() {
   renderQuestion();
 }
 
-function renderQuestion() {
+async function renderQuestion() {
   const q = STATE.quiz;
   const total = q.questions.length;
   if (q.current >= total) { showResult(); return; }
@@ -136,7 +174,28 @@ function renderQuestion() {
   document.getElementById('qCounter').textContent = `Question ${q.current + 1} of ${total}`;
   document.getElementById('progressBar').style.width = ((q.current / total) * 100) + '%';
   document.getElementById('qTag').textContent = STATE.currentSubject.label.replace('\n', ' ');
-  document.getElementById('qText').textContent = curr.q;
+  
+  // Translate question if needed
+  let questionText = curr.q;
+  if (TRANSLATOR.currentLanguage !== 'en') {
+    questionText = await TRANSLATOR.translate(curr.q);
+  }
+  const qTextEl = document.getElementById('qText');
+  qTextEl.textContent = questionText;
+  
+  // Add speech button for question
+  const qContainer = qTextEl.parentElement;
+  const oldSpeechBtn = qContainer.querySelector('.speech-btn');
+  if (oldSpeechBtn) oldSpeechBtn.remove();
+  
+  const speechBtn = document.createElement('button');
+  speechBtn.type = 'button';
+  speechBtn.className = 'speech-btn';
+  speechBtn.innerHTML = '🔊';
+  speechBtn.title = 'Hear the question';
+  speechBtn.onclick = () => TRANSLATOR.speak(curr.q);
+  qContainer.appendChild(speechBtn);
+  
   document.getElementById('feedbackBox').classList.remove('show');
 
   const og = document.getElementById('optionsGrid');
@@ -144,13 +203,21 @@ function renderQuestion() {
   const shuffled = curr.opts.map((o, i) => ({ o, i })).sort(() => Math.random() - 0.5);
   const correctShuffledIdx = shuffled.findIndex(x => x.i === curr.ans);
 
-  shuffled.forEach(({ o, i }, si) => {
+  for (const [idx, { o, i }] of Object.entries(shuffled)) {
+    let optionText = o;
+    if (TRANSLATOR.currentLanguage !== 'en') {
+      optionText = await TRANSLATOR.translate(o);
+    }
+    
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'opt-btn';
-    btn.innerHTML = `<b>${['A','B','C','D'][si]}.</b> ${o}`;
-    btn.onclick = () => selectAnswer(si, i === curr.ans, curr.exp, shuffled);
+    btn.innerHTML = `<b>${['A','B','C','D'][idx]}.</b> ${optionText}`;
+    btn.onclick = () => selectAnswer(parseInt(idx), i === curr.ans, curr.exp, shuffled);
     og.appendChild(btn);
-  });
+    
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
 }
 
 function selectAnswer(selectedIdx, isCorrect, explanation, shuffled) {
@@ -187,7 +254,7 @@ function selectAnswer(selectedIdx, isCorrect, explanation, shuffled) {
 function nextQuestion() {
   STATE.quiz.current++;
   document.getElementById('feedbackBox').classList.remove('show');
-  renderQuestion();
+  renderQuestion().catch(e => console.error('Error rendering question:', e));
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -226,7 +293,7 @@ function startGrammar() {
 
   document.getElementById('gramScore').textContent = STATE.gram.score;
   showScreen('grammarScreen');
-  renderGramSentence();
+  renderGramSentence().catch(e => console.error('Error rendering grammar sentence:', e));
 }
 
 function getGenericGramSentences() {
@@ -244,7 +311,7 @@ function getGenericGramSentences() {
   ];
 }
 
-function renderGramSentence() {
+async function renderGramSentence() {
   const sent = STATE.gram.sentences[STATE.gram.current];
   const area = document.getElementById('gramSentenceArea');
   area.innerHTML = '';
@@ -257,12 +324,34 @@ function renderGramSentence() {
   div.appendChild(title);
 
   const wordDiv = document.createElement('div');
-  sent.sentence.forEach((word, idx) => {
+  const fullSentence = sent.sentence.join(' ');
+  
+  // Add speech button for entire sentence
+  const sentenceContainer = document.createElement('div');
+  sentenceContainer.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:10px';
+  const speechBtn = document.createElement('button');
+  speechBtn.type = 'button';
+  speechBtn.className = 'speech-btn';
+  speechBtn.innerHTML = '🔊';
+  speechBtn.title = 'Hear the sentence';
+  speechBtn.style.cssText = 'flex-shrink:0';
+  speechBtn.onclick = () => TRANSLATOR.speak(fullSentence);
+  sentenceContainer.appendChild(speechBtn);
+  
+  // Translate and display words
+  const translatedWords = TRANSLATOR.currentLanguage !== 'en' 
+    ? await Promise.all(sent.sentence.map(word => 
+        (word === '.' || word === '!' || word === ',') ? Promise.resolve(word) : TRANSLATOR.translate(word)
+      ))
+    : sent.sentence;
+  
+  const wordSpans = document.createElement('div');
+  translatedWords.forEach((word, idx) => {
     if (word === '.' || word === '!' || word === ',') {
       const span = document.createElement('span');
       span.textContent = word;
       span.style.marginRight = '4px';
-      wordDiv.appendChild(span);
+      wordSpans.appendChild(span);
       return;
     }
     const token = document.createElement('span');
@@ -275,9 +364,11 @@ function renderGramSentence() {
       token.dataset.correct = sent.labels[idx];
     }
     token.onclick = () => labelWord(token, idx);
-    wordDiv.appendChild(token);
+    wordSpans.appendChild(token);
   });
-  div.appendChild(wordDiv);
+  
+  sentenceContainer.appendChild(wordSpans);
+  div.appendChild(sentenceContainer);
   area.appendChild(div);
   document.getElementById('gramFeedback').innerHTML = '';
 }
@@ -323,7 +414,7 @@ function checkGrammar() {
 
 function nextGramSentence() {
   STATE.gram.current = (STATE.gram.current + 1) % STATE.gram.sentences.length;
-  renderGramSentence();
+  renderGramSentence().catch(e => console.error('Error rendering grammar sentence:', e));
 }
 
 function showGramHint() {
@@ -338,18 +429,58 @@ function startFlash() {
   const sub = STATE.currentSubject;
   STATE.flash = { cards: [...(sub.flashcards || [])].sort(() => Math.random() - 0.5), current: 0, flipped: false };
   showScreen('flashScreen');
-  renderFlash();
+  renderFlash().catch(e => console.error('Error rendering flashcard:', e));
 }
 
-function renderFlash() {
+async function renderFlash() {
   const f = STATE.flash;
   const card = f.cards[f.current];
   document.getElementById('flashCounter').textContent = `${f.current + 1} / ${f.cards.length}`;
   document.getElementById('flashFrontIcon').textContent = '❓';
-  document.getElementById('flashFrontText').textContent = card.front;
-  document.getElementById('flashFrontSub').textContent = card.frontSub || '';
-  document.getElementById('flashBackText').textContent = card.back;
-  document.getElementById('flashBackSub').textContent = card.backSub || '';
+  
+  // Translate front text
+  let translatedFront = card.front;
+  if (TRANSLATOR.currentLanguage !== 'en') {
+    translatedFront = await TRANSLATOR.translate(card.front);
+  }
+  document.getElementById('flashFrontText').textContent = translatedFront;
+  
+  // Translate front sub if exists
+  let translatedFrontSub = card.frontSub || '';
+  if (translatedFrontSub && TRANSLATOR.currentLanguage !== 'en') {
+    translatedFrontSub = await TRANSLATOR.translate(card.frontSub);
+  }
+  document.getElementById('flashFrontSub').textContent = translatedFrontSub;
+  
+  // Translate back text
+  let translatedBack = card.back;
+  if (TRANSLATOR.currentLanguage !== 'en') {
+    translatedBack = await TRANSLATOR.translate(card.back);
+  }
+  document.getElementById('flashBackText').textContent = translatedBack;
+  
+  // Translate back sub if exists
+  let translatedBackSub = card.backSub || '';
+  if (translatedBackSub && TRANSLATOR.currentLanguage !== 'en') {
+    translatedBackSub = await TRANSLATOR.translate(card.backSub);
+  }
+  document.getElementById('flashBackSub').textContent = translatedBackSub;
+  
+  // Remove old speech buttons
+  document.querySelectorAll('.flashcard-speech-btn').forEach(btn => btn.remove());
+  
+  // Add speech buttons to front and back
+  const frontContainer = document.getElementById('flashFrontText').parentElement;
+  if (frontContainer) {
+    const frontBtn = document.createElement('button');
+    frontBtn.type = 'button';
+    frontBtn.className = 'speech-btn flashcard-speech-btn';
+    frontBtn.innerHTML = '🔊';
+    frontBtn.title = 'Hear front side';
+    frontBtn.onclick = () => TRANSLATOR.speak(card.front);
+    frontContainer.appendChild(frontBtn);
+  }
+  
   document.getElementById('flashcard').classList.remove('flipped');
   f.flipped = false;
 }
@@ -361,12 +492,12 @@ function flipFlashcard() {
 
 function nextFlash() {
   STATE.flash.current = (STATE.flash.current + 1) % STATE.flash.cards.length;
-  renderFlash();
+  renderFlash().catch(e => console.error('Error rendering flashcard:', e));
 }
 
 function prevFlash() {
   STATE.flash.current = (STATE.flash.current - 1 + STATE.flash.cards.length) % STATE.flash.cards.length;
-  renderFlash();
+  renderFlash().catch(e => console.error('Error rendering flashcard:', e));
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -376,25 +507,40 @@ function startVideo() {
   const sub = STATE.currentSubject;
   STATE.slides = { data: sub.slides || [], current: 0 };
   showScreen('videoScreen');
-  renderSlide();
+  renderSlide().catch(e => console.error('Error rendering slide:', e));
   buildSlideDots();
 }
 
-function renderSlide() {
+async function renderSlide() {
   const slides = STATE.slides.data;
   if (!slides.length) return;
   const s = slides[STATE.slides.current];
   const sc = document.getElementById('slideContent');
+  
+  // Translate slide title and content
+  let translatedTitle = s.title;
+  if (TRANSLATOR.currentLanguage !== 'en') {
+    translatedTitle = await TRANSLATOR.translate(s.title);
+  }
+  
+  let translatedContent = s.content;
+  if (TRANSLATOR.currentLanguage !== 'en') {
+    translatedContent = await TRANSLATOR.translate(s.content);
+  }
+  
   sc.innerHTML = `
     <div class="video-slide active">
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:0.8rem;color:var(--muted)">Slide ${STATE.slides.current + 1} of ${slides.length}</div>
-        <h2 style="font-size:1.5rem;margin:10px 0;color:var(--accent1)">${s.title}</h2>
+        <div style="display:flex;justify-content:center;align-items:center;gap:8px">
+          <h2 style="font-size:1.5rem;margin:10px 0;color:var(--accent1)">${translatedTitle}</h2>
+          <button type="button" class="speech-btn" style="font-size:1rem" onclick="TRANSLATOR.speak('${s.title.replace(/'/g, "\\'")}')">🔊</button>
+        </div>
       </div>
       <div class="visual-demo">
         <span style="font-size:5rem;animation:${s.anim || 'bounce'} 1s ease infinite">${s.visual}</span>
       </div>
-      <div style="margin-top:16px;line-height:1.8;font-size:1.05rem">${s.content}</div>
+      <div style="margin-top:16px;line-height:1.8;font-size:1.05rem">${translatedContent}</div>
     </div>`;
   document.querySelectorAll('.slide-dot').forEach((d, i) => d.classList.toggle('active', i === STATE.slides.current));
 }
@@ -405,18 +551,18 @@ function buildSlideDots() {
   STATE.slides.data.forEach((_, i) => {
     const btn = document.createElement('button');
     btn.className = 'slide-dot' + (i === 0 ? ' active' : '');
-    btn.onclick = () => { STATE.slides.current = i; renderSlide(); };
+    btn.onclick = () => { STATE.slides.current = i; renderSlide().catch(e => console.error('Error rendering slide:', e)); };
     sn.appendChild(btn);
   });
 }
 
 function nextSlide() {
-  if (STATE.slides.current < STATE.slides.data.length - 1) { STATE.slides.current++; renderSlide(); }
+  if (STATE.slides.current < STATE.slides.data.length - 1) { STATE.slides.current++; renderSlide().catch(e => console.error('Error rendering slide:', e)); }
   else showToast('🎉 Presentation complete! Great learning!', 'correct');
 }
 
 function prevSlide() {
-  if (STATE.slides.current > 0) { STATE.slides.current--; renderSlide(); }
+  if (STATE.slides.current > 0) { STATE.slides.current--; renderSlide().catch(e => console.error('Error rendering slide:', e)); }
 }
 
 // ═══════════════════════════════════════════════════════════════
