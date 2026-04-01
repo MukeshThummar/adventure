@@ -13,6 +13,29 @@ const STATE = {
   achievements: {}
 };
 
+// ═══════════════════════════════════════════════════════════════
+//  SCORE PERSISTENCE FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+function saveScore() {
+  localStorage.setItem('totalScore', STATE.score.toString());
+}
+
+function loadScore() {
+  const saved = localStorage.getItem('totalScore');
+  if (saved) {
+    STATE.score = parseInt(saved, 10);
+  }
+}
+
+function resetScore() {
+  if (confirm('Are you sure you want to reset your total score? This cannot be undone!')) {
+    STATE.score = 0;
+    localStorage.removeItem('totalScore');
+    updateScoreDisplay();
+    showToast('🔄 Score reset to 0', 'correct');
+  }
+}
+
 const avatars = ['🧑‍🚀','👩‍🚀','🦸','👧','👦','🧒','🧑‍🎓','🦊','🐱','🐶','🐸','🦁'];
 
 // ═══════════════════════════════════════════════════════════════
@@ -21,6 +44,9 @@ const avatars = ['🧑‍🚀','👩‍🚀','🦸','👧','👦','🧒','🧑�
 function init() {
   // Initialize translator
   TRANSLATOR.init();
+
+  // Load saved score
+  loadScore();
 
   // Build avatar row
   const ar = document.getElementById('avatarRow');
@@ -667,6 +693,8 @@ function updateScoreDisplay() {
     const el = document.getElementById(id);
     if (el) el.textContent = '❤️'.repeat(Math.max(0, STATE.lives)) + '🖤'.repeat(Math.max(0, 3 - STATE.lives));
   });
+  // Save score to localStorage
+  saveScore();
 }
 
 function showToast(msg, type) {
